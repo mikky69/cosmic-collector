@@ -5,7 +5,8 @@ class CosmicCollectorApp {
     constructor() {
         this.canvas = null;
         this.ctx = null;
-        this.game = null;
+        this.currentGame = null;
+        this.currentGameType = 'cosmic';
         this.currentScreen = 'mainMenu';
         this.isInitialized = false;
         
@@ -13,7 +14,7 @@ class CosmicCollectorApp {
     }
 
     async init() {
-        console.log('Initializing Cosmic Collector...');
+        console.log('Initializing Mikky Studio Games...');
         
         // Wait for DOM to be ready
         if (document.readyState === 'loading') {
@@ -31,9 +32,6 @@ class CosmicCollectorApp {
         // Setup event listeners
         this.setupEventListeners();
         
-        // Initialize game instance
-        this.game = new CosmicCollectorGame(this.canvas, this.ctx);
-        
         // Setup responsive canvas
         this.setupCanvas();
         
@@ -43,13 +41,21 @@ class CosmicCollectorApp {
         this.loadNFTCollection();
         
         this.isInitialized = true;
-        console.log('Cosmic Collector initialized successfully');
+        console.log('Mikky Studio Games initialized successfully');
     }
 
     setupEventListeners() {
-        // Main Menu buttons
+        // Main Menu buttons - Game selection
         document.getElementById('playBtn').addEventListener('click', () => {
-            this.startGame();
+            this.startGame('cosmic');
+        });
+
+        document.getElementById('asteroidBtn').addEventListener('click', () => {
+            this.startGame('asteroid');
+        });
+
+        document.getElementById('snakeBtn').addEventListener('click', () => {
+            this.startGame('snake');
         });
 
         document.getElementById('nftBtn').addEventListener('click', () => {
@@ -99,7 +105,7 @@ class CosmicCollectorApp {
 
         // Game over screen buttons
         document.getElementById('playAgainBtn').addEventListener('click', () => {
-            this.startGame();
+            this.startGame(this.currentGameType);
         });
 
         document.getElementById('submitScoreBtn').addEventListener('click', async () => {
@@ -112,8 +118,8 @@ class CosmicCollectorApp {
 
         // Pause button
         document.getElementById('pauseBtn').addEventListener('click', () => {
-            if (this.game) {
-                this.game.togglePause();
+            if (this.currentGame) {
+                this.currentGame.togglePause();
             }
         });
 
@@ -125,8 +131,8 @@ class CosmicCollectorApp {
         // Global keyboard handling
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Escape' && this.currentScreen === 'gameScreen') {
-                if (this.game) {
-                    this.game.togglePause();
+                if (this.currentGame) {
+                    this.currentGame.togglePause();
                 }
             }
         });
@@ -152,8 +158,8 @@ class CosmicCollectorApp {
         this.canvas.style.height = canvasHeight + 'px';
         
         // Update physics world bounds if game is initialized
-        if (this.game && this.game.physics) {
-            this.game.physics.setBounds(0, 0, this.canvas.width, this.canvas.height);
+        if (this.currentGame && this.currentGame.physics) {
+            this.currentGame.physics.setBounds(0, 0, this.canvas.width, this.canvas.height);
         }
     }
 
@@ -176,11 +182,28 @@ class CosmicCollectorApp {
         this.showScreen('loadingScreen');
     }
 
-    async startGame() {
+    async startGame(gameType = 'cosmic') {
         this.showScreen('gameScreen');
+        this.currentGameType = gameType;
         
-        if (this.game) {
-            this.game.restart();
+        // Create the appropriate game instance
+        switch(gameType) {
+            case 'cosmic':
+                this.currentGame = new CosmicCollectorGame(this.canvas, this.ctx);
+                break;
+            case 'asteroid':
+                this.currentGame = new AsteroidBlastGame(this.canvas, this.ctx);
+                break;
+            case 'snake':
+                this.currentGame = new SpaceSnakeGame(this.canvas, this.ctx);
+                break;
+            default:
+                this.currentGame = new CosmicCollectorGame(this.canvas, this.ctx);
+        }
+        
+        // Start the game
+        if (this.currentGame) {
+            this.currentGame.start();
         }
     }
 
@@ -275,7 +298,7 @@ class CosmicCollectorApp {
                 return;
             }
 
-            if (!this.game) {
+            if (!this.currentGame) {
                 alert('No game data to submit');
                 return;
             }
@@ -283,7 +306,7 @@ class CosmicCollectorApp {
             this.showLoadingScreen('Submitting score to blockchain...');
 
             const playerName = prompt('Enter your player name:') || 'Anonymous';
-            const result = await window.hederaService.submitScore(this.game.score, playerName);
+            const result = await window.hederaService.submitScore(this.currentGame.score, playerName);
 
             if (result.success) {
                 alert(`Score submitted successfully! Transaction: ${result.submission.transaction.substr(0, 20)}...`);
