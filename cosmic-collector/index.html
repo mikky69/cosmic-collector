@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Collector - Mikky Studio</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="gameContainer">
+        <!-- Main Menu -->
+        <div id="mainMenu" class="screen active">
+            <div class="logo">
+                <h1>COSMIC COLLECTOR</h1>
+                <p class="studio">By Mikky Studio</p>
+            </div>
+            <div class="menu-buttons">
+                <button id="playBtn" class="btn primary">PLAY GAME</button>
+                <button id="nftBtn" class="btn secondary">NFT COLLECTION</button>
+                <button id="shopBtn" class="btn secondary">SHIP SHOP</button>
+                <button id="leaderboardBtn" class="btn secondary">LEADERBOARD</button>
+            </div>
+            <div class="wallet-section">
+                <button id="connectWalletBtn" class="btn wallet">Connect Hedera Wallet</button>
+                <div id="walletInfo" class="wallet-info hidden">
+                    <span id="walletAddress"></span>
+                    <span id="walletBalance">0 HBAR</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="gameScreen" class="screen">
+            <div class="game-ui">
+                <div class="score-panel">
+                    <div class="score">Score: <span id="score">0</span></div>
+                    <div class="lives">Lives: <span id="lives">3</span></div>
+                    <div class="level">Level: <span id="level">1</span></div>
+                    <div class="gems">Gems: <span id="gems">0</span></div>
+                </div>
+                <button id="pauseBtn" class="btn pause">⏸️</button>
+            </div>
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
+            <div class="controls-info">
+                <p>Arrow Keys or WASD to move • Space to shoot • ESC to pause</p>
+            </div>
+        </div>
+
+        <!-- NFT Collection Screen -->
+        <div id="nftScreen" class="screen">
+            <h2>Your NFT Collection</h2>
+            <div class="nft-grid" id="nftGrid">
+                <!-- NFTs will be loaded here -->
+            </div>
+            <button id="mintNftBtn" class="btn primary">Mint New Ship NFT (10 HBAR)</button>
+            <button id="backFromNftBtn" class="btn secondary">Back to Menu</button>
+        </div>
+
+        <!-- Shop Screen -->
+        <div id="shopScreen" class="screen">
+            <h2>Ship Shop</h2>
+            <div class="shop-grid">
+                <div class="shop-item">
+                    <div class="ship-preview ship-classic"></div>
+                    <h3>Classic Fighter</h3>
+                    <p>Standard spaceship with balanced stats</p>
+                    <button class="btn price" data-ship="classic">5 HBAR</button>
+                </div>
+                <div class="shop-item">
+                    <div class="ship-preview ship-speed"></div>
+                    <h3>Speed Racer</h3>
+                    <p>Faster movement, lower armor</p>
+                    <button class="btn price" data-ship="speed">8 HBAR</button>
+                </div>
+                <div class="shop-item">
+                    <div class="ship-preview ship-tank"></div>
+                    <h3>Heavy Tank</h3>
+                    <p>High armor, slower movement</p>
+                    <button class="btn price" data-ship="tank">12 HBAR</button>
+                </div>
+                <div class="shop-item">
+                    <div class="ship-preview ship-stealth"></div>
+                    <h3>Stealth Ninja</h3>
+                    <p>Temporary invisibility ability</p>
+                    <button class="btn price" data-ship="stealth">15 HBAR</button>
+                </div>
+            </div>
+            <button id="backFromShopBtn" class="btn secondary">Back to Menu</button>
+        </div>
+
+        <!-- Leaderboard Screen -->
+        <div id="leaderboardScreen" class="screen">
+            <h2>Global Leaderboard</h2>
+            <div class="leaderboard-list" id="leaderboardList">
+                <!-- Leaderboard entries will be loaded here -->
+            </div>
+            <button id="backFromLeaderboardBtn" class="btn secondary">Back to Menu</button>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameOverScreen" class="screen">
+            <h2>Game Over</h2>
+            <div class="final-stats">
+                <p>Final Score: <span id="finalScore">0</span></p>
+                <p>Gems Collected: <span id="finalGems">0</span></p>
+                <p>Level Reached: <span id="finalLevel">1</span></p>
+            </div>
+            <div class="game-over-buttons">
+                <button id="playAgainBtn" class="btn primary">Play Again</button>
+                <button id="submitScoreBtn" class="btn secondary">Submit Score (1 HBAR)</button>
+                <button id="backToMenuBtn" class="btn secondary">Main Menu</button>
+            </div>
+        </div>
+
+        <!-- Loading Screen -->
+        <div id="loadingScreen" class="screen">
+            <div class="loading-content">
+                <div class="loading-spinner"></div>
+                <p id="loadingText">Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/@hashgraph/sdk@latest/dist/bundle.js"></script>
+    <script src="scripts/hedera.js"></script>
+    <script src="scripts/physics.js"></script>
+    <script src="scripts/game.js"></script>
+    <script src="scripts/main.js"></script>
+</body>
+</html>
