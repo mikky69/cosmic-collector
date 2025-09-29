@@ -1,118 +1,119 @@
-// Fixed Asteroid Blast Game - 100% Working
+// Fixed Space Snake Game - 100% Working
 // Mikky Studio - 2025
 
-class AsteroidBlastGame {
+class SpaceSnakeGame {
     constructor(canvas, ctx) {
         this.canvas = canvas;
         this.ctx = ctx;
         this.isRunning = false;
         this.isPaused = false;
         this.lastTime = 0;
+        this.moveTimer = 0;
+        this.moveInterval = 300; // milliseconds between moves
         
         // Game state
         this.score = 0;
         this.lives = 3;
         this.level = 1;
-        this.gameTime = 0;
         
-        // Game entities
-        this.player = { 
-            x: canvas.width/2, 
-            y: canvas.height/2, 
-            angle: 0, 
-            vx: 0,
-            vy: 0,
-            thrust: false,
-            radius: 12
-        };
-        this.bullets = [];
-        this.asteroids = [];
+        // Grid settings
+        this.gridSize = 25;
+        this.gridWidth = Math.floor(canvas.width / this.gridSize);
+        this.gridHeight = Math.floor(canvas.height / this.gridSize);
+        
+        // Snake
+        this.snake = [
+            { x: Math.floor(this.gridWidth / 2), y: Math.floor(this.gridHeight / 2) }
+        ];
+        this.direction = { x: 1, y: 0 };
+        this.nextDirection = { x: 1, y: 0 };
+        
+        // Food and power-ups
+        this.food = [];
+        this.powerUps = [];
         this.stars = [];
-        this.particles = [];
-        
-        // Game settings
-        this.bulletSpeed = 500;
-        this.asteroidCount = 4 + this.level;
-        this.lastShot = 0;
-        this.shotCooldown = 150; // milliseconds
         
         this.setupInput();
         this.initializeGame();
         
-        console.log('Asteroid Blast Game created');
+        console.log('Space Snake Game created - Canvas:', this.canvas.width, 'x', this.canvas.height);
+        console.log('Grid:', this.gridWidth, 'x', this.gridHeight);
     }
 
     setupInput() {
-        this.keys = {};
-        this.boundKeyDownHandler = this.handleKeyDown.bind(this);
-        this.boundKeyUpHandler = this.handleKeyUp.bind(this);
-        
-        document.addEventListener('keydown', this.boundKeyDownHandler);
-        document.addEventListener('keyup', this.boundKeyUpHandler);
+        // Remove any existing listeners
+        this.boundKeyHandler = this.handleKeyDown.bind(this);
+        document.addEventListener('keydown', this.boundKeyHandler);
     }
     
     handleKeyDown(e) {
-        this.keys[e.code] = true;
-        if (e.code === 'Space' && this.isRunning && !this.isPaused) {
-            e.preventDefault();
-            this.shoot();
+        if (!this.isRunning || this.isPaused) return;
+        
+        switch(e.code) {
+            case 'ArrowUp':
+            case 'KeyW':
+                if (this.direction.y !== 1) this.nextDirection = { x: 0, y: -1 };
+                break;
+            case 'ArrowDown':
+            case 'KeyS':
+                if (this.direction.y !== -1) this.nextDirection = { x: 0, y: 1 };
+                break;
+            case 'ArrowLeft':
+            case 'KeyA':
+                if (this.direction.x !== 1) this.nextDirection = { x: -1, y: 0 };
+                break;
+            case 'ArrowRight':
+            case 'KeyD':
+                if (this.direction.x !== -1) this.nextDirection = { x: 1, y: 0 };
+                break;
         }
-    }
-    
-    handleKeyUp(e) {
-        this.keys[e.code] = false;
+        e.preventDefault();
     }
 
     initializeGame() {
         this.createStarfield();
-        this.createAsteroids();
+        this.spawnFood();
         this.updateUI();
-        console.log('Asteroid Blast initialized with', this.asteroids.length, 'asteroids');
+        console.log('Space Snake initialized with', this.stars.length, 'stars');
     }
 
     createStarfield() {
         this.stars = [];
-        for (let i = 0; i < 80; i++) {
+        for (let i = 0; i < 40; i++) {
             this.stars.push({
                 x: Math.random() * this.canvas.width,
                 y: Math.random() * this.canvas.height,
-                size: Math.random() * 2 + 0.5,
+                size: Math.random() * 2 + 1,
                 alpha: Math.random() * 0.8 + 0.2
             });
         }
     }
 
-    createAsteroids() {
-        this.asteroids = [];
-        const count = this.asteroidCount + Math.floor(this.level / 2);
+    spawnFood() {
+        if (this.food.length >= 3) return; // Max 3 food items
         
-        for (let i = 0; i < count; i++) {
-            let x, y;
-            let attempts = 0;
-            
-            // Make sure asteroids don't spawn too close to player
-            do {
-                x = Math.random() * this.canvas.width;
-                y = Math.random() * this.canvas.height;
-                attempts++;
-            } while (this.distance(x, y, this.player.x, this.player.y) < 120 && attempts < 50);
-            
-            const size = 25 + Math.random() * 35;
-            
-            this.asteroids.push({
-                x: x,
-                y: y,
-                vx: (Math.random() - 0.5) * 120,
-                vy: (Math.random() - 0.5) * 120,
-                size: size,
-                health: Math.ceil(size / 20),
-                maxHealth: Math.ceil(size / 20),
-                rotation: 0,
-                rotationSpeed: (Math.random() - 0.5) * 4
-            });
+        let attempts = 0;
+        let newFood;
+        
+        do {
+            newFood = {
+                x: Math.floor(Math.random() * this.gridWidth),
+                y: Math.floor(Math.random() * this.gridHeight),
+                type: Math.random() < 0.8 ? 'normal' : 'power'
+            };
+            attempts++;
+        } while (this.isPositionOccupied(newFood.x, newFood.y) && attempts < 50);
+        
+        if (attempts < 50) {
+            this.food.push(newFood);
+            console.log('Food spawned at:', newFood.x, newFood.y);
         }
-        
-        console.log('Created', this.asteroids.length, 'asteroids for level', this.level);
+    }
+
+    isPositionOccupied(x, y) {
+        return this.snake.some(segment => segment.x === x && segment.y === y) ||
+               this.food.some(food => food.x === x && food.y === y) ||
+               this.powerUps.some(powerUp => powerUp.x === x && powerUp.y === y);
     }
 
     start() {
@@ -121,56 +122,53 @@ class AsteroidBlastGame {
             this.isPaused = false;
             this.lastTime = performance.now();
             this.gameLoop(this.lastTime);
-            console.log('Asteroid Blast started');
+            console.log('Space Snake started');
         }
     }
 
     restart() {
+        // Clean up first
         this.stop();
         
+        // Reset state
         this.score = 0;
         this.lives = 3;
         this.level = 1;
-        this.gameTime = 0;
-        this.lastShot = 0;
+        this.moveInterval = 300;
+        this.moveTimer = 0;
         
-        this.player = { 
-            x: this.canvas.width/2, 
-            y: this.canvas.height/2, 
-            angle: 0, 
-            vx: 0,
-            vy: 0,
-            thrust: false,
-            radius: 12
-        };
-        this.bullets = [];
-        this.particles = [];
+        this.snake = [
+            { x: Math.floor(this.gridWidth / 2), y: Math.floor(this.gridHeight / 2) }
+        ];
+        this.direction = { x: 1, y: 0 };
+        this.nextDirection = { x: 1, y: 0 };
+        this.food = [];
+        this.powerUps = [];
         
         this.createStarfield();
-        this.createAsteroids();
+        this.spawnFood();
         this.updateUI();
         this.start();
         
-        console.log('Asteroid Blast restarted');
+        console.log('Space Snake restarted');
     }
-    
+
     stop() {
         this.isRunning = false;
-        if (this.boundKeyDownHandler) {
-            document.removeEventListener('keydown', this.boundKeyDownHandler);
-            document.removeEventListener('keyup', this.boundKeyUpHandler);
+        if (this.boundKeyHandler) {
+            document.removeEventListener('keydown', this.boundKeyHandler);
         }
     }
 
     togglePause() {
         this.isPaused = !this.isPaused;
-        console.log('Asteroid game', this.isPaused ? 'paused' : 'resumed');
+        console.log('Snake game', this.isPaused ? 'paused' : 'resumed');
     }
 
     gameLoop(currentTime) {
         if (!this.isRunning) return;
         
-        const deltaTime = (currentTime - this.lastTime) / 1000;
+        const deltaTime = currentTime - this.lastTime;
         this.lastTime = currentTime;
         
         if (!this.isPaused) {
@@ -182,202 +180,143 @@ class AsteroidBlastGame {
     }
 
     update(deltaTime) {
-        this.gameTime += deltaTime;
+        this.moveTimer += deltaTime;
         
-        // Handle player input
-        if (this.keys['ArrowLeft'] || this.keys['KeyA']) {
-            this.player.angle -= 200 * deltaTime;
-        }
-        if (this.keys['ArrowRight'] || this.keys['KeyD']) {
-            this.player.angle += 200 * deltaTime;
+        // Move snake at regular intervals
+        if (this.moveTimer >= this.moveInterval) {
+            this.moveTimer = 0;
+            this.moveSnake();
         }
         
-        // Thrust
-        if (this.keys['ArrowUp'] || this.keys['KeyW']) {
-            this.player.thrust = true;
-            const thrustPower = 300 * deltaTime;
-            const radians = (this.player.angle - 90) * Math.PI / 180;
-            this.player.vx += Math.cos(radians) * thrustPower;
-            this.player.vy += Math.sin(radians) * thrustPower;
+        // Spawn more food if needed
+        if (this.food.length < 2) {
+            this.spawnFood();
+        }
+        
+        // Update power-ups (remove expired ones)
+        this.powerUps = this.powerUps.filter(powerUp => {
+            powerUp.duration -= deltaTime;
+            return powerUp.duration > 0;
+        });
+        
+        // Occasionally spawn power-ups
+        if (Math.random() < 0.001 && this.powerUps.length < 1) {
+            this.spawnPowerUp();
+        }
+    }
+
+    moveSnake() {
+        this.direction = { ...this.nextDirection };
+        
+        const head = { ...this.snake[0] };
+        head.x += this.direction.x;
+        head.y += this.direction.y;
+        
+        // Check wall collision (wrap around)
+        if (head.x < 0) head.x = this.gridWidth - 1;
+        if (head.x >= this.gridWidth) head.x = 0;
+        if (head.y < 0) head.y = this.gridHeight - 1;
+        if (head.y >= this.gridHeight) head.y = 0;
+        
+        // Check self collision
+        if (this.snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+            this.lives--;
+            if (this.lives <= 0) {
+                this.gameOver();
+                return;
+            } else {
+                this.resetPosition();
+                return;
+            }
+        }
+        
+        this.snake.unshift(head);
+        
+        // Check food collision
+        const foodIndex = this.food.findIndex(food => food.x === head.x && food.y === head.y);
+        if (foodIndex !== -1) {
+            const food = this.food[foodIndex];
+            this.food.splice(foodIndex, 1);
+            
+            if (food.type === 'normal') {
+                this.score += 10;
+            } else {
+                this.score += 25;
+                this.moveInterval = Math.max(80, this.moveInterval - 10); // Speed up
+            }
+            
+            // Level up every 100 points
+            if (this.score % 100 === 0) {
+                this.level++;
+                this.moveInterval = Math.max(80, this.moveInterval - 15);
+            }
+            
+            // Don't remove tail - snake grows
         } else {
-            this.player.thrust = false;
-        }
-        
-        // Apply physics to player
-        this.player.x += this.player.vx * deltaTime;
-        this.player.y += this.player.vy * deltaTime;
-        
-        // Apply friction
-        this.player.vx *= 0.98;
-        this.player.vy *= 0.98;
-        
-        // Screen wrapping for player
-        if (this.player.x < 0) this.player.x = this.canvas.width;
-        if (this.player.x > this.canvas.width) this.player.x = 0;
-        if (this.player.y < 0) this.player.y = this.canvas.height;
-        if (this.player.y > this.canvas.height) this.player.y = 0;
-        
-        // Update bullets
-        this.bullets = this.bullets.filter(bullet => {
-            bullet.x += bullet.vx * deltaTime;
-            bullet.y += bullet.vy * deltaTime;
-            bullet.life -= deltaTime;
+            // Check power-up collision
+            const powerUpIndex = this.powerUps.findIndex(powerUp => powerUp.x === head.x && powerUp.y === head.y);
+            if (powerUpIndex !== -1) {
+                const powerUp = this.powerUps[powerUpIndex];
+                this.powerUps.splice(powerUpIndex, 1);
+                this.applyPowerUp(powerUp);
+            }
             
-            // Screen wrapping for bullets
-            if (bullet.x < 0) bullet.x = this.canvas.width;
-            if (bullet.x > this.canvas.width) bullet.x = 0;
-            if (bullet.y < 0) bullet.y = this.canvas.height;
-            if (bullet.y > this.canvas.height) bullet.y = 0;
-            
-            return bullet.life > 0;
-        });
-        
-        // Update asteroids
-        this.asteroids.forEach(asteroid => {
-            asteroid.x += asteroid.vx * deltaTime;
-            asteroid.y += asteroid.vy * deltaTime;
-            asteroid.rotation += asteroid.rotationSpeed * deltaTime;
-            
-            // Screen wrapping for asteroids
-            if (asteroid.x < -asteroid.size) asteroid.x = this.canvas.width + asteroid.size;
-            if (asteroid.x > this.canvas.width + asteroid.size) asteroid.x = -asteroid.size;
-            if (asteroid.y < -asteroid.size) asteroid.y = this.canvas.height + asteroid.size;
-            if (asteroid.y > this.canvas.height + asteroid.size) asteroid.y = -asteroid.size;
-        });
-        
-        // Update particles
-        this.particles = this.particles.filter(particle => {
-            particle.x += particle.vx * deltaTime;
-            particle.y += particle.vy * deltaTime;
-            particle.life -= deltaTime;
-            particle.alpha = particle.life / particle.maxLife;
-            return particle.life > 0;
-        });
-        
-        // Check collisions
-        this.checkCollisions();
-        
-        // Check level completion
-        if (this.asteroids.length === 0) {
-            this.level++;
-            this.score += 1000;
-            this.asteroidCount = Math.min(4 + this.level, 10);
-            this.createAsteroids();
-            console.log('Level', this.level, 'started with', this.asteroids.length, 'asteroids');
+            // Remove tail - snake doesn't grow
+            this.snake.pop();
         }
         
         this.updateUI();
     }
 
-    checkCollisions() {
-        // Bullets vs asteroids
-        this.bullets.forEach((bullet, bulletIndex) => {
-            this.asteroids.forEach((asteroid, asteroidIndex) => {
-                if (this.distance(bullet.x, bullet.y, asteroid.x, asteroid.y) < asteroid.size) {
-                    // Hit!
-                    asteroid.health--;
-                    this.bullets.splice(bulletIndex, 1);
-                    this.score += 20;
-                    
-                    // Create hit particles
-                    this.createParticles(asteroid.x, asteroid.y, '#ffaa00', 8);
-                    
-                    if (asteroid.health <= 0) {
-                        this.asteroids.splice(asteroidIndex, 1);
-                        this.score += 100;
-                        
-                        // Create destruction particles
-                        this.createParticles(asteroid.x, asteroid.y, '#ff4444', 15);
-                        
-                        // Split larger asteroids
-                        if (asteroid.size > 25) {
-                            const pieces = Math.min(3, Math.floor(asteroid.size / 20));
-                            for (let i = 0; i < pieces; i++) {
-                                const angle = (Math.PI * 2 / pieces) * i;
-                                const speed = 80 + Math.random() * 40;
-                                
-                                this.asteroids.push({
-                                    x: asteroid.x + Math.cos(angle) * 20,
-                                    y: asteroid.y + Math.sin(angle) * 20,
-                                    vx: Math.cos(angle) * speed + asteroid.vx * 0.3,
-                                    vy: Math.sin(angle) * speed + asteroid.vy * 0.3,
-                                    size: asteroid.size * 0.6,
-                                    health: Math.max(1, Math.floor(asteroid.maxHealth * 0.6)),
-                                    maxHealth: Math.max(1, Math.floor(asteroid.maxHealth * 0.6)),
-                                    rotation: Math.random() * Math.PI * 2,
-                                    rotationSpeed: (Math.random() - 0.5) * 6
-                                });
-                            }
-                        }
-                    }
-                }
-            });
-        });
+    spawnPowerUp() {
+        let powerUp;
+        let attempts = 0;
         
-        // Player vs asteroids
-        this.asteroids.forEach(asteroid => {
-            if (this.distance(this.player.x, this.player.y, asteroid.x, asteroid.y) < asteroid.size + this.player.radius) {
-                // Player hit!
-                this.lives--;
-                this.createParticles(this.player.x, this.player.y, '#ff6666', 12);
-                
-                if (this.lives <= 0) {
-                    this.gameOver();
-                } else {
-                    // Reset player position and velocity
-                    this.player.x = this.canvas.width / 2;
-                    this.player.y = this.canvas.height / 2;
-                    this.player.vx = 0;
-                    this.player.vy = 0;
-                    this.player.angle = 0;
-                }
-            }
-        });
-    }
-
-    createParticles(x, y, color, count) {
-        for (let i = 0; i < count; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const speed = Math.random() * 150 + 50;
-            
-            this.particles.push({
-                x: x,
-                y: y,
-                vx: Math.cos(angle) * speed,
-                vy: Math.sin(angle) * speed,
-                color: color,
-                life: 0.5 + Math.random() * 0.5,
-                maxLife: 1,
-                alpha: 1,
-                size: Math.random() * 3 + 1
-            });
+        do {
+            powerUp = {
+                x: Math.floor(Math.random() * this.gridWidth),
+                y: Math.floor(Math.random() * this.gridHeight),
+                type: ['slow', 'shrink', 'score'][Math.floor(Math.random() * 3)],
+                duration: 8000
+            };
+            attempts++;
+        } while (this.isPositionOccupied(powerUp.x, powerUp.y) && attempts < 50);
+        
+        if (attempts < 50) {
+            this.powerUps.push(powerUp);
         }
     }
 
-    shoot() {
-        const currentTime = performance.now();
-        if (currentTime - this.lastShot < this.shotCooldown) return;
-        
-        this.lastShot = currentTime;
-        
-        const radians = (this.player.angle - 90) * Math.PI / 180;
-        
-        this.bullets.push({
-            x: this.player.x + Math.cos(radians) * 15,
-            y: this.player.y + Math.sin(radians) * 15,
-            vx: Math.cos(radians) * this.bulletSpeed + this.player.vx,
-            vy: Math.sin(radians) * this.bulletSpeed + this.player.vy,
-            life: 3 // 3 seconds lifetime
-        });
+    applyPowerUp(powerUp) {
+        switch(powerUp.type) {
+            case 'slow':
+                this.moveInterval += 50;
+                this.score += 20;
+                break;
+            case 'shrink':
+                if (this.snake.length > 1) {
+                    this.snake.pop();
+                    if (this.snake.length > 1) this.snake.pop();
+                }
+                this.score += 30;
+                break;
+            case 'score':
+                this.score += 100;
+                break;
+        }
     }
 
-    distance(x1, y1, x2, y2) {
-        return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+    resetPosition() {
+        this.snake = [
+            { x: Math.floor(this.gridWidth / 2), y: Math.floor(this.gridHeight / 2) }
+        ];
+        this.direction = { x: 1, y: 0 };
+        this.nextDirection = { x: 1, y: 0 };
     }
 
     render() {
         // Clear canvas
-        this.ctx.fillStyle = '#000011';
+        this.ctx.fillStyle = '#000033';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
         // Render stars
@@ -390,105 +329,88 @@ class AsteroidBlastGame {
         });
         this.ctx.globalAlpha = 1;
         
-        // Render particles
-        this.particles.forEach(particle => {
-            this.ctx.globalAlpha = particle.alpha;
-            this.ctx.fillStyle = particle.color;
+        // Render grid (subtle)
+        this.ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        this.ctx.lineWidth = 1;
+        for (let x = 0; x <= this.gridWidth; x++) {
             this.ctx.beginPath();
-            this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-            this.ctx.fill();
-        });
-        this.ctx.globalAlpha = 1;
-        
-        // Render player
-        this.ctx.save();
-        this.ctx.translate(this.player.x, this.player.y);
-        this.ctx.rotate(this.player.angle * Math.PI / 180);
-        
-        this.ctx.fillStyle = '#00ffff';
-        this.ctx.strokeStyle = '#ffffff';
-        this.ctx.lineWidth = 2;
-        
-        this.ctx.beginPath();
-        this.ctx.moveTo(0, -15);
-        this.ctx.lineTo(-10, 15);
-        this.ctx.lineTo(0, 8);
-        this.ctx.lineTo(10, 15);
-        this.ctx.closePath();
-        this.ctx.fill();
-        this.ctx.stroke();
-        
-        // Thrust effect
-        if (this.player.thrust) {
-            this.ctx.fillStyle = '#ff6600';
+            this.ctx.moveTo(x * this.gridSize, 0);
+            this.ctx.lineTo(x * this.gridSize, this.canvas.height);
+            this.ctx.stroke();
+        }
+        for (let y = 0; y <= this.gridHeight; y++) {
             this.ctx.beginPath();
-            this.ctx.moveTo(-6, 15);
-            this.ctx.lineTo(0, 25 + Math.random() * 8);
-            this.ctx.lineTo(6, 15);
-            this.ctx.closePath();
-            this.ctx.fill();
+            this.ctx.moveTo(0, y * this.gridSize);
+            this.ctx.lineTo(this.canvas.width, y * this.gridSize);
+            this.ctx.stroke();
         }
         
-        this.ctx.restore();
-        
-        // Render bullets
-        this.ctx.fillStyle = '#ffff00';
-        this.bullets.forEach(bullet => {
-            this.ctx.beginPath();
-            this.ctx.arc(bullet.x, bullet.y, 3, 0, Math.PI * 2);
-            this.ctx.fill();
-        });
-        
-        // Render asteroids
-        this.asteroids.forEach(asteroid => {
-            this.ctx.save();
-            this.ctx.translate(asteroid.x, asteroid.y);
-            this.ctx.rotate(asteroid.rotation);
+        // Render snake
+        this.snake.forEach((segment, index) => {
+            const x = segment.x * this.gridSize;
+            const y = segment.y * this.gridSize;
             
-            // Health-based coloring
-            const healthPercent = asteroid.health / asteroid.maxHealth;
-            if (healthPercent > 0.6) {
-                this.ctx.strokeStyle = '#888888';
-                this.ctx.fillStyle = '#444444';
-            } else if (healthPercent > 0.3) {
-                this.ctx.strokeStyle = '#aa6600';
-                this.ctx.fillStyle = '#553300';
+            if (index === 0) {
+                // Head - bright cyan
+                this.ctx.fillStyle = '#00ffff';
+                this.ctx.strokeStyle = '#ffffff';
             } else {
-                this.ctx.strokeStyle = '#cc3333';
-                this.ctx.fillStyle = '#661111';
+                // Body - darker cyan
+                this.ctx.fillStyle = '#00aaaa';
+                this.ctx.strokeStyle = '#ffffff';
             }
             
-            this.ctx.lineWidth = 3;
-            
-            // Draw irregular asteroid shape
-            const points = 8;
-            this.ctx.beginPath();
-            for (let i = 0; i <= points; i++) {
-                const angle = (i / points) * Math.PI * 2;
-                const variation = 0.7 + Math.sin(angle * 3 + asteroid.rotation) * 0.3;
-                const radius = asteroid.size * variation;
-                const x = Math.cos(angle) * radius;
-                const y = Math.sin(angle) * radius;
-                
-                if (i === 0) {
-                    this.ctx.moveTo(x, y);
-                } else {
-                    this.ctx.lineTo(x, y);
-                }
-            }
-            this.ctx.closePath();
-            this.ctx.fill();
-            this.ctx.stroke();
-            
-            this.ctx.restore();
+            this.ctx.lineWidth = 2;
+            this.ctx.fillRect(x + 2, y + 2, this.gridSize - 4, this.gridSize - 4);
+            this.ctx.strokeRect(x + 2, y + 2, this.gridSize - 4, this.gridSize - 4);
         });
         
-        // Render UI text
-        this.ctx.fillStyle = 'white';
-        this.ctx.font = '16px Arial';
-        this.ctx.fillText(`Level: ${this.level}`, 20, this.canvas.height - 60);
-        this.ctx.fillText(`Asteroids: ${this.asteroids.length}`, 20, this.canvas.height - 40);
-        this.ctx.fillText(`Bullets: ${this.bullets.length}`, 20, this.canvas.height - 20);
+        // Render food
+        this.food.forEach(food => {
+            const x = food.x * this.gridSize + this.gridSize/2;
+            const y = food.y * this.gridSize + this.gridSize/2;
+            
+            if (food.type === 'normal') {
+                this.ctx.fillStyle = '#ffff00'; // Yellow
+            } else {
+                this.ctx.fillStyle = '#ff0080'; // Pink
+            }
+            
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, this.gridSize/3, 0, Math.PI * 2);
+            this.ctx.fill();
+            
+            this.ctx.strokeStyle = '#ffffff';
+            this.ctx.lineWidth = 2;
+            this.ctx.stroke();
+        });
+        
+        // Render power-ups
+        this.powerUps.forEach(powerUp => {
+            const x = powerUp.x * this.gridSize + this.gridSize/2;
+            const y = powerUp.y * this.gridSize + this.gridSize/2;
+            
+            let color;
+            switch(powerUp.type) {
+                case 'slow': color = '#00ff80'; break;
+                case 'shrink': color = '#ff8000'; break;
+                case 'score': color = '#8000ff'; break;
+            }
+            
+            this.ctx.fillStyle = color;
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, this.gridSize/4, 0, Math.PI * 2);
+            this.ctx.fill();
+            
+            // Pulsing effect
+            this.ctx.strokeStyle = color;
+            this.ctx.lineWidth = 3;
+            this.ctx.globalAlpha = 0.5 + 0.5 * Math.sin(Date.now() / 200);
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, this.gridSize/3, 0, Math.PI * 2);
+            this.ctx.stroke();
+            this.ctx.globalAlpha = 1;
+        });
         
         // Render pause overlay
         if (this.isPaused) {
@@ -506,7 +428,7 @@ class AsteroidBlastGame {
         document.getElementById('score').textContent = this.score;
         document.getElementById('lives').textContent = this.lives;
         document.getElementById('level').textContent = this.level;
-        document.getElementById('gems').textContent = this.asteroids.length;
+        document.getElementById('gems').textContent = this.snake.length;
     }
 
     gameOver() {
@@ -515,7 +437,7 @@ class AsteroidBlastGame {
         
         document.getElementById('finalScore').textContent = this.score;
         document.getElementById('finalLevel').textContent = this.level;
-        document.getElementById('finalGems').textContent = '---';
+        document.getElementById('finalGems').textContent = this.snake.length;
         
         // Show game over screen
         document.querySelectorAll('.screen').forEach(screen => {
