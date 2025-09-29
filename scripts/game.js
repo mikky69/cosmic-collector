@@ -31,9 +31,9 @@ class CosmicCollectorGame {
         this.keys = {};
         this.setupInput();
         
-        // Game settings
-        this.playerSpeed = 300;
-        this.bulletSpeed = 500;
+        // Game settings - INCREASED SPEED FOR RESPONSIVE MOVEMENT
+        this.playerSpeed = 450; // Increased from 300 to 450
+        this.bulletSpeed = 600; // Increased from 500 to 600
         this.enemySpawnRate = 2.0; // enemies per second
         this.pickupSpawnRate = 1.0;
         this.difficultyMultiplier = 1.0;
@@ -100,6 +100,21 @@ class CosmicCollectorGame {
     }
 
     setupInput() {
+        // Touch/Mobile support properties
+        this.touchControls = {
+            active: false,
+            startX: 0,
+            startY: 0,
+            currentX: 0,
+            currentY: 0,
+            deadZone: 30, // Minimum distance for movement
+            shooting: false
+        };
+        
+        // Detect if device is mobile
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                        (window.innerWidth <= 768 && 'ontouchstart' in window);
+        
         // Keyboard events
         window.addEventListener('keydown', (e) => {
             this.keys[e.code] = true;
@@ -119,10 +134,89 @@ class CosmicCollectorGame {
             this.keys[e.code] = false;
         });
         
+        // MOBILE/TOUCH CONTROLS
+        if (this.isMobile) {
+            this.setupTouchControls();
+        }
+        
+        // Mouse controls for desktop
+        this.canvas.addEventListener('mousedown', (e) => {
+            if (!this.isMobile) {
+                this.shoot(); // Desktop click to shoot
+            }
+        });
+        
         // Prevent context menu on canvas
         this.canvas.addEventListener('contextmenu', (e) => {
             e.preventDefault();
         });
+        
+        console.log(this.isMobile ? 'Mobile controls enabled' : 'Desktop controls enabled');
+    }
+    
+    setupTouchControls() {
+        // Touch start
+        this.canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = this.canvas.getBoundingClientRect();
+            
+            this.touchControls.active = true;
+            this.touchControls.startX = touch.clientX - rect.left;
+            this.touchControls.startY = touch.clientY - rect.top;
+            this.touchControls.currentX = this.touchControls.startX;
+            this.touchControls.currentY = this.touchControls.startY;
+            
+            // Double tap to shoot
+            if (e.touches.length === 1) {
+                this.touchControls.shooting = true;
+                this.shoot();
+            }
+        });
+        
+        // Touch move
+        this.canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!this.touchControls.active) return;
+            
+            const touch = e.touches[0];
+            const rect = this.canvas.getBoundingClientRect();
+            
+            this.touchControls.currentX = touch.clientX - rect.left;
+            this.touchControls.currentY = touch.clientY - rect.top;
+        });
+        
+        // Touch end
+        this.canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.touchControls.active = false;
+            this.touchControls.shooting = false;
+            
+            // Clear movement keys when touch ends
+            this.keys['ArrowLeft'] = false;
+            this.keys['ArrowRight'] = false;
+            this.keys['ArrowUp'] = false;
+            this.keys['ArrowDown'] = false;
+        });
+        
+        // Prevent scrolling on mobile
+        document.body.addEventListener('touchstart', (e) => {
+            if (e.target === this.canvas) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        document.body.addEventListener('touchend', (e) => {
+            if (e.target === this.canvas) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        document.body.addEventListener('touchmove', (e) => {
+            if (e.target === this.canvas) {
+                e.preventDefault();
+            }
+        }, { passive: false });
     }
 
     start() {
@@ -253,40 +347,103 @@ class CosmicCollectorGame {
         if (!this.player || this.player.invulnerable > 0) return;
         
         const playerBody = this.player.body;
-        const force = new PhysicsEngine.Vector2D(0, 0);
         
-        // Movement
+        // Process touch controls for mobile
+        if (this.isMobile && this.touchControls.active) {
+            this.processTouchMovement();
+        }
+        
+        // FIXED: Direct velocity control for responsive movement
+        let velocityX = 0;
+        let velocityY = 0;
+        
+        // Movement - Direct velocity setting for immediate response
         if (this.keys['ArrowLeft'] || this.keys['KeyA']) {
-            force.x -= this.playerSpeed;
+            velocityX = -this.playerSpeed;
         }
         if (this.keys['ArrowRight'] || this.keys['KeyD']) {
-            force.x += this.playerSpeed;
+            velocityX = this.playerSpeed;
         }
         if (this.keys['ArrowUp'] || this.keys['KeyW']) {
-            force.y -= this.playerSpeed;
+            velocityY = -this.playerSpeed;
         }
         if (this.keys['ArrowDown'] || this.keys['KeyS']) {
-            force.y += this.playerSpeed;
+            velocityY = this.playerSpeed;
         }
         
-        // Apply movement force
-        if (force.magnitude() > 0) {
-            playerBody.applyForce(force.normalize().multiply(this.playerSpeed * playerBody.mass));
-            
-            // Create engine trail
+        // Diagonal movement normalization (prevent faster diagonal movement)
+        if (velocityX !== 0 && velocityY !== 0) {
+            const factor = 0.707; // 1/sqrt(2) for diagonal normalization
+            velocityX *= factor;
+            velocityY *= factor;
+        }
+        
+        // Set velocity directly for immediate response
+        playerBody.velocity.x = velocityX;
+        playerBody.velocity.y = velocityY;
+        
+        // Keep player within bounds
+        if (playerBody.position.x < playerBody.radius) {
+            playerBody.position.x = playerBody.radius;
+            playerBody.velocity.x = 0;
+        }
+        if (playerBody.position.x > this.canvas.width - playerBody.radius) {
+            playerBody.position.x = this.canvas.width - playerBody.radius;
+            playerBody.velocity.x = 0;
+        }
+        if (playerBody.position.y < playerBody.radius) {
+            playerBody.position.y = playerBody.radius;
+            playerBody.velocity.y = 0;
+        }
+        if (playerBody.position.y > this.canvas.height - playerBody.radius) {
+            playerBody.position.y = this.canvas.height - playerBody.radius;
+            playerBody.velocity.y = 0;
+        }
+        
+        // Create engine trail when moving
+        if (velocityX !== 0 || velocityY !== 0) {
             this.physics.particleSystem.createTrail(
                 playerBody.position.x,
                 playerBody.position.y + 10,
-                -playerBody.velocity.x * 0.1,
-                -playerBody.velocity.y * 0.1
+                -velocityX * 0.05,
+                -velocityY * 0.05
             );
         }
         
-        // Shooting
-        if (this.keys['Space'] && this.gameTime - this.lastShot > this.shotCooldown) {
+        // Shooting (keyboard or continuous touch shooting)
+        if ((this.keys['Space'] || this.touchControls.shooting) && 
+            this.gameTime - this.lastShot > this.shotCooldown) {
             this.shoot();
             this.lastShot = this.gameTime;
         }
+    }
+    
+    processTouchMovement() {
+        // Calculate movement vector from touch
+        const deltaX = this.touchControls.currentX - this.touchControls.startX;
+        const deltaY = this.touchControls.currentY - this.touchControls.startY;
+        
+        // Apply dead zone
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        if (distance < this.touchControls.deadZone) {
+            // Clear all movement keys if within dead zone
+            this.keys['ArrowLeft'] = false;
+            this.keys['ArrowRight'] = false;
+            this.keys['ArrowUp'] = false;
+            this.keys['ArrowDown'] = false;
+            return;
+        }
+        
+        // Normalize touch movement and convert to key presses
+        const sensitivity = 1.5; // Adjust sensitivity
+        const normalizedX = (deltaX / distance) * Math.min(distance / 50, 1) * sensitivity;
+        const normalizedY = (deltaY / distance) * Math.min(distance / 50, 1) * sensitivity;
+        
+        // Set movement keys based on touch direction
+        this.keys['ArrowLeft'] = normalizedX < -0.3;
+        this.keys['ArrowRight'] = normalizedX > 0.3;
+        this.keys['ArrowUp'] = normalizedY < -0.3;
+        this.keys['ArrowDown'] = normalizedY > 0.3;
     }
 
     shoot() {
