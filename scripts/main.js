@@ -50,10 +50,6 @@ class CosmicCollectorApp {
             this.startGame('cosmic');
         });
 
-        document.getElementById('asteroidBtn').addEventListener('click', () => {
-            this.startGame('asteroid');
-        });
-
         document.getElementById('snakeBtn').addEventListener('click', () => {
             this.startGame('snake');
         });
@@ -121,6 +117,15 @@ class CosmicCollectorApp {
             if (this.currentGame) {
                 this.currentGame.togglePause();
             }
+        });
+
+        // Back button from game
+        document.getElementById('backToMenuFromGame').addEventListener('click', () => {
+            if (this.currentGame) {
+                this.currentGame.stop();
+                this.currentGame = null;
+            }
+            this.showScreen('mainMenu');
         });
 
         // Window resize handling
@@ -191,9 +196,6 @@ class CosmicCollectorApp {
             case 'cosmic':
                 this.currentGame = new CosmicCollectorGame(this.canvas, this.ctx);
                 break;
-            case 'asteroid':
-                this.currentGame = new AsteroidBlastGame(this.canvas, this.ctx);
-                break;
             case 'snake':
                 this.currentGame = new SpaceSnakeGame(this.canvas, this.ctx);
                 break;
@@ -215,9 +217,27 @@ class CosmicCollectorApp {
             
             if (result.success) {
                 console.log('Wallet connected:', result.accountId);
+                
+                // Update wallet display
+                const connectBtn = document.getElementById('connectWalletBtn');
+                const walletInfo = document.getElementById('walletInfo');
+                const walletAddress = document.getElementById('walletAddress');
+                const walletBalance = document.getElementById('walletBalance');
+                
+                connectBtn.style.display = 'none';
+                walletInfo.classList.remove('hidden');
+                
+                // Format address for display
+                const shortAddress = result.accountId.length > 12 ? 
+                    result.accountId.substring(0, 8) + '...' + result.accountId.substring(result.accountId.length - 4) :
+                    result.accountId;
+                    
+                walletAddress.textContent = `${result.walletType.toUpperCase()}: ${shortAddress}`;
+                walletBalance.textContent = `${result.balance.toFixed(2)} HBAR`;
+                
                 this.showScreen('mainMenu');
             } else {
-                alert('Failed to connect wallet: ' + result.error);
+                alert('Failed to connect wallet: ' + (result.error || 'Unknown error'));
                 this.showScreen('mainMenu');
             }
         } catch (error) {
@@ -229,7 +249,7 @@ class CosmicCollectorApp {
 
     async mintNFT() {
         try {
-            if (!window.hederaService.isConnected) {
+            if (!window.hederaService.walletConnected) {
                 alert('Please connect your wallet first');
                 return;
             }
@@ -240,17 +260,10 @@ class CosmicCollectorApp {
             const shipTypes = ['classic', 'speed', 'tank', 'stealth'];
             const randomShip = shipTypes[Math.floor(Math.random() * shipTypes.length)];
             
-            const metadata = {
-                name: `${window.hederaService.getShipName(randomShip)} #${Math.floor(Math.random() * 1000)}`,
-                type: randomShip,
-                stats: window.hederaService.getShipStats(randomShip),
-                rarity: window.hederaService.getShipRarity(randomShip)
-            };
-
-            const result = await window.hederaService.mintShipNFT(randomShip, metadata);
+            const result = await window.hederaService.mintNFT(randomShip);
 
             if (result.success) {
-                alert(`Successfully minted ${metadata.name}!`);
+                alert(result.message);
                 this.loadNFTCollection();
             } else {
                 alert('Failed to mint NFT: ' + result.error);
@@ -266,18 +279,17 @@ class CosmicCollectorApp {
 
     async purchaseShip(shipType, price) {
         try {
-            if (!window.hederaService.isConnected) {
+            if (!window.hederaService.walletConnected) {
                 alert('Please connect your wallet first');
                 return;
             }
 
-            this.showLoadingScreen(`Purchasing ${window.hederaService.getShipName(shipType)}...`);
+            this.showLoadingScreen(`Purchasing ${shipType} ship...`);
 
-            const result = await window.hederaService.purchaseShip(shipType, price);
+            const result = await window.hederaService.purchaseShip(shipType);
 
             if (result.success) {
-                alert(`Successfully purchased ${window.hederaService.getShipName(shipType)}! ` + 
-                      `Transaction: ${result.transaction.substr(0, 20)}...`);
+                alert(result.message);
                 this.loadNFTCollection();
             } else {
                 alert('Failed to purchase ship: ' + result.error);
@@ -293,7 +305,7 @@ class CosmicCollectorApp {
 
     async submitScore() {
         try {
-            if (!window.hederaService.isConnected) {
+            if (!window.hederaService.walletConnected) {
                 alert('Please connect your wallet first');
                 return;
             }
@@ -305,11 +317,10 @@ class CosmicCollectorApp {
 
             this.showLoadingScreen('Submitting score to blockchain...');
 
-            const playerName = prompt('Enter your player name:') || 'Anonymous';
-            const result = await window.hederaService.submitScore(this.currentGame.score, playerName);
+            const result = await window.hederaService.submitScore(this.currentGame.score, this.currentGameType);
 
             if (result.success) {
-                alert(`Score submitted successfully! Transaction: ${result.submission.transaction.substr(0, 20)}...`);
+                alert(result.message);
                 this.loadLeaderboard();
             } else {
                 alert('Failed to submit score: ' + result.error);
@@ -323,76 +334,100 @@ class CosmicCollectorApp {
         }
     }
 
-    loadNFTCollection() {
+    async loadNFTCollection() {
         const nftGrid = document.getElementById('nftGrid');
         nftGrid.innerHTML = '';
 
-        if (!window.hederaService.isConnected) {
+        if (!window.hederaService.walletConnected) {
             nftGrid.innerHTML = '<p class="no-nfts">Connect wallet to view your NFT collection</p>';
             return;
         }
 
-        const nfts = window.hederaService.getUserNFTs();
+        try {
+            const nfts = await window.hederaService.getUserNFTs();
 
-        if (nfts.length === 0) {
-            nftGrid.innerHTML = '<p class="no-nfts">No NFTs found. Mint your first spaceship!</p>';
-            return;
+            if (nfts.length === 0) {
+                nftGrid.innerHTML = '<p class="no-nfts">No NFTs found. Mint your first spaceship!</p>';
+                return;
+            }
+
+            nfts.forEach((nft, index) => {
+                const nftItem = document.createElement('div');
+                nftItem.className = 'nft-item';
+                
+                // Create mock metadata if not present
+                const mockMetadata = {
+                    name: `Cosmic Ship #${nft.serialNumber || index + 1}`,
+                    type: 'classic',
+                    rarity: 'Common',
+                    stats: { speed: 5, armor: 5, firepower: 5 }
+                };
+
+                const metadata = nft.metadata || mockMetadata;
+                const shipEmoji = this.getShipEmoji(metadata.type);
+                
+                nftItem.innerHTML = `
+                    <div class="nft-preview" style="background: ${this.getShipGradient(metadata.type)}">
+                        ${shipEmoji}
+                    </div>
+                    <h3>${metadata.name}</h3>
+                    <p>Type: ${metadata.type}</p>
+                    <p>Rarity: ${metadata.rarity}</p>
+                    <div class="nft-stats">
+                        <small>Speed: ${metadata.stats.speed}/10</small><br>
+                        <small>Armor: ${metadata.stats.armor}/10</small><br>
+                        <small>Power: ${metadata.stats.firepower}/10</small>
+                    </div>
+                    <p class="nft-serial">Serial #${nft.serialNumber || index + 1}</p>
+                `;
+                
+                nftGrid.appendChild(nftItem);
+            });
+        } catch (error) {
+            console.error('Error loading NFTs:', error);
+            nftGrid.innerHTML = '<p class="no-nfts">Error loading NFT collection</p>';
         }
-
-        nfts.forEach(nft => {
-            const nftItem = document.createElement('div');
-            nftItem.className = 'nft-item';
-            
-            const shipEmoji = this.getShipEmoji(nft.shipType);
-            
-            nftItem.innerHTML = `
-                <div class="nft-preview" style="background: ${this.getShipGradient(nft.shipType)}">
-                    ${shipEmoji}
-                </div>
-                <h3>${nft.metadata.name}</h3>
-                <p>Type: ${nft.metadata.type}</p>
-                <p>Rarity: ${nft.metadata.rarity}</p>
-                <div class="nft-stats">
-                    <small>Speed: ${nft.metadata.stats.speed}/10</small><br>
-                    <small>Armor: ${nft.metadata.stats.armor}/10</small><br>
-                    <small>Power: ${nft.metadata.stats.firepower}/10</small>
-                </div>
-                <p class="nft-serial">Serial #${nft.serialNumber}</p>
-            `;
-            
-            nftGrid.appendChild(nftItem);
-        });
     }
 
-    loadLeaderboard() {
+    async loadLeaderboard() {
         const leaderboardList = document.getElementById('leaderboardList');
         leaderboardList.innerHTML = '';
 
-        const scores = window.hederaService.getLeaderboard();
+        try {
+            const scores = await window.hederaService.getLeaderboard(this.currentGameType);
 
-        if (scores.length === 0) {
-            leaderboardList.innerHTML = '<p class="no-scores">No scores submitted yet. Be the first!</p>';
-            return;
+            if (scores.length === 0) {
+                leaderboardList.innerHTML = '<p class="no-scores">No scores submitted yet. Be the first!</p>';
+                return;
+            }
+
+            scores.forEach((score, index) => {
+                const entry = document.createElement('div');
+                entry.className = 'leaderboard-entry';
+                
+                const rank = index + 1;
+                let rankEmoji = '🏆';
+                if (rank === 2) rankEmoji = '🥈';
+                else if (rank === 3) rankEmoji = '🥉';
+                else if (rank > 3) rankEmoji = `#${rank}`;
+                
+                const playerName = score.accountId ? 
+                    `${score.accountId.substring(0, 8)}...` : 
+                    'Anonymous';
+                
+                entry.innerHTML = `
+                    <div class="rank">${rankEmoji}</div>
+                    <div class="player">${playerName}</div>
+                    <div class="score-value">${score.score.toLocaleString()}</div>
+                    <div class="wallet-type">${score.walletType || 'N/A'}</div>
+                `;
+                
+                leaderboardList.appendChild(entry);
+            });
+        } catch (error) {
+            console.error('Error loading leaderboard:', error);
+            leaderboardList.innerHTML = '<p class="no-scores">Error loading leaderboard</p>';
         }
-
-        scores.forEach((score, index) => {
-            const entry = document.createElement('div');
-            entry.className = 'leaderboard-entry';
-            
-            const rank = index + 1;
-            let rankEmoji = '🏆';
-            if (rank === 2) rankEmoji = '🥈';
-            else if (rank === 3) rankEmoji = '🥉';
-            else if (rank > 3) rankEmoji = `#${rank}`;
-            
-            entry.innerHTML = `
-                <div class="rank">${rankEmoji}</div>
-                <div class="player">${score.player}</div>
-                <div class="score-value">${score.score.toLocaleString()}</div>
-            `;
-            
-            leaderboardList.appendChild(entry);
-        });
     }
 
     getShipEmoji(shipType) {
