@@ -130,8 +130,21 @@ class CosmicCollectorGame {
             this.isRunning = true;
             this.isPaused = false;
             this.lastTime = performance.now();
-            this.gameLoop();
-            console.log('Game started');
+            
+            // Ensure entities are created
+            if (this.enemies.length === 0) {
+                for (let i = 0; i < 3; i++) {
+                    this.createEnemy();
+                }
+            }
+            if (this.pickups.length === 0) {
+                for (let i = 0; i < 2; i++) {
+                    this.createPickup();
+                }
+            }
+            
+            this.gameLoop(this.lastTime);
+            console.log('Cosmic Collector started with', this.enemies.length, 'enemies and', this.pickups.length, 'pickups');
         }
     }
 
@@ -167,6 +180,14 @@ class CosmicCollectorGame {
         // Recreate player and stars
         this.createStarfield();
         this.createPlayer();
+        
+        // Initialize some enemies and pickups
+        for (let i = 0; i < 3; i++) {
+            this.createEnemy();
+        }
+        for (let i = 0; i < 2; i++) {
+            this.createPickup();
+        }
         
         this.updateUI();
         this.start();
