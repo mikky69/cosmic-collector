@@ -4,10 +4,10 @@
   "description": "Addictive arcade space game with NFT integration on Hedera Hashgraph",
   "main": "index.html",
   "scripts": {
-    "start": "http-server -p 8000 -c-1",
-    "dev": "live-server --port=8000 --no-browser",
-    "build": "echo 'No build step required for vanilla JS'",
-    "test": "echo 'No automated tests configured'"
+    "start": "npx http-server . -p 8000",
+    "dev": "npx http-server . -p 3000",
+    "build": "echo 'Static site - no build required'",
+    "test": "echo 'Run tests at: http://localhost:8000?test=true'"
   },
   "keywords": [
     "game",
