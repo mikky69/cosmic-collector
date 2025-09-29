@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cosmic Collector - Quick Start</title>
+    <style>
+        body { font-family: 'Courier New', monospace; background: #1a1a2e; color: #eee; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .logo { text-align: center; color: #4ecdc4; font-size: 2em; margin-bottom: 20px; }
+        .step { background: #16213e; padding: 15px; margin: 10px 0; border-left: 4px solid #4ecdc4; }
+        .code { background: #0f0f23; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        a { color: #4ecdc4; }
+        .warning { background: #2a1810; border-left-color: #ff6b6b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🚀 COSMIC COLLECTOR</div>
+        
+        <div class="step">
+            <h3>1. Start Local Server</h3>
+            <p>Choose one method to serve the game files:</p>
+            <div class="code">
+                # Python 3<br>
+                python -m http.server 8000<br><br>
+                
+                # Node.js<br>
+                npx http-server<br><br>
+                
+                # PHP<br>
+                php -S localhost:8000
+            </div>
+        </div>
+        
+        <div class="step">
+            <h3>2. Open in Browser</h3>
+            <p>Navigate to: <a href="http://localhost:8000">http://localhost:8000</a></p>
+        </div>
+        
+        <div class="step">
+            <h3>3. Connect Wallet</h3>
+            <p>The game uses simulated wallet connections for demo purposes. Click "Connect Hedera Wallet" to start.</p>
+        </div>
+        
+        <div class="step warning">
+            <h3>⚠️ Important Notes</h3>
+            <ul>
+                <li>This is a <strong>testnet</strong> implementation</li>
+                <li>Wallet connections are <strong>simulated</strong> for demo</li>
+                <li>No real HBAR or NFTs are involved</li>
+                <li>All data is stored locally in browser</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <h3>🎮 Game Controls</h3>
+            <ul>
+                <li><strong>Movement:</strong> Arrow Keys or WASD</li>
+                <li><strong>Shoot:</strong> Spacebar</li>
+                <li><strong>Pause:</strong> ESC</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <h3>🔧 Development</h3>
+            <p>For live reload during development:</p>
+            <div class="code">
+                npm install -g live-server<br>
+                live-server --port=8000
+            </div>
+        </div>
+    </div>
+</body>
+</html>
