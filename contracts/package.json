@@ -1,0 +1,33 @@
+{
+  "name": "cosmic-collector-contracts",
+  "version": "1.0.0",
+  "description": "Smart contracts for Cosmic Collector game on Hedera network",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "deploy:testnet": "hardhat run scripts/deploy.js --network hedera_testnet",
+    "deploy:mainnet": "hardhat run scripts/deploy.js --network hedera_mainnet",
+    "test": "hardhat test",
+    "verify": "hardhat verify --network hedera_testnet",
+    "clean": "hardhat clean"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@nomicfoundation/hardhat-ethers": "^3.0.0",
+    "hardhat": "^2.19.0",
+    "dotenv": "^16.3.1"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.0",
+    "ethers": "^6.8.0"
+  },
+  "keywords": [
+    "blockchain",
+    "hedera",
+    "nft",
+    "game",
+    "smart-contracts"
+  ],
+  "author": "MiniMax Agent",
+  "license": "MIT"
+}
