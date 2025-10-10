@@ -33,11 +33,27 @@ class CosmicCollectorGame {
     
     setupCanvas() {
         const container = document.getElementById('cosmic-game-area');
-        const maxWidth = Math.min(container.clientWidth - 40, 800);
-        const maxHeight = Math.min(window.innerHeight - 300, 600);
+        const isMobile = window.mobileControls && window.mobileControls.isEnabled;
         
-        this.canvas.width = maxWidth;
-        this.canvas.height = maxHeight;
+        if (isMobile) {
+            // Mobile sizing
+            const maxWidth = Math.min(container.clientWidth - 20, window.innerWidth - 40);
+            const maxHeight = Math.min(window.innerHeight * 0.4, 300);
+            
+            this.canvas.width = maxWidth;
+            this.canvas.height = maxHeight;
+        } else {
+            // Desktop sizing
+            const maxWidth = Math.min(container.clientWidth - 40, 800);
+            const maxHeight = Math.min(window.innerHeight - 300, 600);
+            
+            this.canvas.width = maxWidth;
+            this.canvas.height = maxHeight;
+        }
+        
+        // Ensure canvas maintains aspect ratio
+        this.canvas.style.width = this.canvas.width + 'px';
+        this.canvas.style.height = this.canvas.height + 'px';
     }
     
     setupControls() {
@@ -206,31 +222,67 @@ class CosmicCollectorGame {
     }
     
     updatePlayer(deltaTime) {
-        // Handle input
+        // Handle input (keyboard + mobile)
         const speed = this.player.speed * deltaTime;
         
-        if ((this.keys['a'] || this.keys['arrowleft']) && this.player.x > 0) {
+        // Get mobile controls input
+        const mobileInput = this.getMobileInput();
+        
+        // Movement - combine keyboard and mobile input
+        const moveLeft = (this.keys['a'] || this.keys['arrowleft']) || mobileInput.left;
+        const moveRight = (this.keys['d'] || this.keys['arrowright']) || mobileInput.right;
+        const moveUp = (this.keys['w'] || this.keys['arrowup']) || mobileInput.up;
+        const moveDown = (this.keys['s'] || this.keys['arrowdown']) || mobileInput.down;
+        
+        if (moveLeft && this.player.x > 0) {
             this.player.x -= speed;
         }
-        if ((this.keys['d'] || this.keys['arrowright']) && this.player.x < this.canvas.width - this.player.width) {
+        if (moveRight && this.player.x < this.canvas.width - this.player.width) {
             this.player.x += speed;
         }
-        if ((this.keys['w'] || this.keys['arrowup']) && this.player.y > 0) {
+        if (moveUp && this.player.y > 0) {
             this.player.y -= speed;
         }
-        if ((this.keys['s'] || this.keys['arrowdown']) && this.player.y < this.canvas.height - this.player.height) {
+        if (moveDown && this.player.y < this.canvas.height - this.player.height) {
             this.player.y += speed;
         }
         
-        // Handle shooting
+        // Handle shooting - combine keyboard and mobile input
         if (this.player.shootCooldown > 0) {
             this.player.shootCooldown -= deltaTime;
         }
         
-        if (this.keys[' '] && this.player.shootCooldown <= 0) {
+        const shouldShoot = (this.keys[' '] || mobileInput.fire) && this.player.shootCooldown <= 0;
+        if (shouldShoot) {
             this.shootBullet();
             this.player.shootCooldown = 0.2; // 200ms cooldown
         }
+    }
+    
+    getMobileInput() {
+        // Get input from mobile controls if available
+        if (window.mobileControls && window.mobileControls.isEnabled) {
+            const joystick = window.mobileControls.getJoystickVector();
+            const threshold = 0.3; // Minimum joystick movement to register
+            
+            return {
+                left: joystick.x < -threshold,
+                right: joystick.x > threshold,
+                up: joystick.y < -threshold,
+                down: joystick.y > threshold,
+                fire: window.mobileControls.isPressed('fire'),
+                special: window.mobileControls.isPressed('special')
+            };
+        }
+        
+        return {
+            left: false,
+            right: false,
+            up: false,
+            down: false,
+            fire: false,
+            special: false
+        };
     }
     
     shootBullet() {
