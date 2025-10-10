@@ -13,6 +13,17 @@
         <nav id="game-nav" class="sidebar">
             <div class="nav-header">
                 <h2>🚀 COSMIC GAMES</h2>
+                <!-- Player Stats -->
+                <div class="player-stats">
+                    <div class="cosmic-tokens">
+                        <span class="token-icon">💎</span>
+                        <span id="playerTokens">0</span> Tokens
+                    </div>
+                    <div class="player-level">
+                        <span class="level-icon">⭐</span>
+                        <span>Level <span id="playerLevel">1</span></span>
+                    </div>
+                </div>
             </div>
             <div class="nav-links">
                 <a href="#cosmic-collector" class="nav-link active" data-game="cosmic-collector">
@@ -26,6 +37,14 @@
                 </a>
                 <a href="#asteroid-miner" class="nav-link" data-game="asteroid-miner">
                     ⛏️ Asteroid Miner
+                </a>
+                <!-- New Sections -->
+                <div class="nav-divider"></div>
+                <a href="#marketplace" class="nav-link" data-section="marketplace">
+                    🛒 NFT Marketplace
+                </a>
+                <a href="#leaderboard" class="nav-link" data-section="leaderboard">
+                    🏆 Leaderboards
                 </a>
             </div>
             <div class="nav-footer">
@@ -44,6 +63,7 @@
                 <div class="game-header">
                     <h1>🌌 Cosmic Collector</h1>
                     <p>Classic space shooter with NFT spaceships</p>
+                    <button class="leaderboard-btn" onclick="showGameLeaderboard('cosmic-collector')">🏆 View Leaderboard</button>
                 </div>
                 
                 <div id="cosmic-game-area">
@@ -69,6 +89,10 @@
                                 <span>Lives:</span>
                                 <span id="cosmic-lives">3</span>
                             </div>
+                            <div class="hud-item tokens-earned">
+                                <span>Tokens:</span>
+                                <span id="cosmic-tokens-earned">0</span>
+                            </div>
                         </div>
                         
                         <div class="game-controls">
@@ -85,6 +109,7 @@
                 <div class="game-header">
                     <h1>⚔️ Token Battle</h1>
                     <p>Battle between crypto tokens - 30 second rounds</p>
+                    <button class="leaderboard-btn" onclick="showGameLeaderboard('token-battle')">🏆 View Leaderboard</button>
                 </div>
                 
                 <div id="token-game-area">
@@ -92,6 +117,9 @@
                         <div class="battle-header">
                             <div id="battle-timer" class="timer">30</div>
                             <div id="battle-score" class="score">Score: 0</div>
+                            <div class="tokens-earned">
+                                <span>Tokens: <span id="battle-tokens-earned">0</span></span>
+                            </div>
                         </div>
                         
                         <div id="battle-question" class="question-container">
@@ -124,6 +152,7 @@
                 <div class="game-header">
                     <h1>🛡️ Space Defender</h1>
                     <p>Defend your base from incoming asteroids</p>
+                    <button class="leaderboard-btn" onclick="showGameLeaderboard('space-defender')">🏆 View Leaderboard</button>
                 </div>
                 
                 <div id="defender-game-area">
@@ -145,6 +174,10 @@
                                     <div id="defender-health" class="health-fill"></div>
                                 </div>
                             </div>
+                            <div class="hud-item tokens-earned">
+                                <span>Tokens:</span>
+                                <span id="defender-tokens-earned">0</span>
+                            </div>
                         </div>
                         
                         <div class="game-controls">
@@ -160,6 +193,7 @@
                 <div class="game-header">
                     <h1>⛏️ Asteroid Miner</h1>
                     <p>Mine asteroids for crypto rewards</p>
+                    <button class="leaderboard-btn" onclick="showGameLeaderboard('asteroid-miner')">🏆 View Leaderboard</button>
                 </div>
                 
                 <div id="miner-game-area">
@@ -181,6 +215,10 @@
                                 <span>Cargo:</span>
                                 <span id="miner-cargo">0/100</span>
                             </div>
+                            <div class="hud-item tokens-earned">
+                                <span>Tokens:</span>
+                                <span id="miner-tokens-earned">0</span>
+                            </div>
                         </div>
                         
                         <div class="game-controls">
@@ -190,14 +228,73 @@
                     </div>
                 </div>
             </div>
+
+            <!-- NFT Marketplace Section -->
+            <div id="marketplace" class="section-container">
+                <div class="section-header">
+                    <h1>🛒 NFT Marketplace</h1>
+                    <p>Purchase NFT items to enhance your gameplay experience</p>
+                </div>
+                
+                <div class="marketplace-content">
+                    <div class="marketplace-categories">
+                        <button class="category-btn active" data-category="ships">🚀 Spaceships</button>
+                        <button class="category-btn" data-category="weapons">⚔️ Weapons</button>
+                        <button class="category-btn" data-category="powerups">⚡ Power-ups</button>
+                        <button class="category-btn" data-category="skins">🎨 Skins</button>
+                    </div>
+                    
+                    <div class="marketplace-grid" id="marketplace-items">
+                        <!-- Items will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leaderboards Section -->
+            <div id="leaderboard" class="section-container">
+                <div class="section-header">
+                    <h1>🏆 Leaderboards</h1>
+                    <p>Top players across all games</p>
+                </div>
+                
+                <div class="leaderboard-content">
+                    <div class="leaderboard-tabs">
+                        <button class="tab-btn active" data-game="all">🌟 Overall</button>
+                        <button class="tab-btn" data-game="cosmic-collector">🌌 Cosmic Collector</button>
+                        <button class="tab-btn" data-game="token-battle">⚔️ Token Battle</button>
+                        <button class="tab-btn" data-game="space-defender">🛡️ Space Defender</button>
+                        <button class="tab-btn" data-game="asteroid-miner">⛏️ Asteroid Miner</button>
+                    </div>
+                    
+                    <div class="leaderboard-table" id="leaderboard-table">
+                        <!-- Leaderboard will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
         </main>
+
+        <!-- Mobile Touch Controls -->
+        <div id="mobile-controls" class="mobile-controls">
+            <div class="virtual-joystick">
+                <div class="joystick-base">
+                    <div class="joystick-handle" id="joystick-handle"></div>
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button class="action-btn" id="mobile-fire">🔥</button>
+                <button class="action-btn" id="mobile-special">⚡</button>
+            </div>
+        </div>
     </div>
 
-    <!-- Game Over Modal -->
+    <!-- Game Over Modal (Enhanced) -->
     <div id="game-over-modal" class="modal">
         <div class="modal-content">
             <h2>🌟 Game Over</h2>
             <div id="final-stats"></div>
+            <div class="tokens-earned-display">
+                <h3>💎 Tokens Earned: <span id="tokens-earned-final">0</span></h3>
+            </div>
             <div class="score-submission">
                 <input type="text" id="player-name" placeholder="Enter your name" maxlength="20">
                 <button id="submit-score" class="game-btn primary">🏆 Submit Score (1 HBAR)</button>
@@ -209,6 +306,29 @@
         </div>
     </div>
 
+    <!-- NFT Purchase Modal -->
+    <div id="nft-purchase-modal" class="modal">
+        <div class="modal-content">
+            <h2>🛒 Purchase NFT Item</h2>
+            <div id="nft-details"></div>
+            <div class="purchase-buttons">
+                <button id="confirm-purchase" class="game-btn primary">💎 Purchase</button>
+                <button id="cancel-purchase" class="game-btn secondary">❌ Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Leaderboard Modal -->
+    <div id="game-leaderboard-modal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2 id="leaderboard-game-title">🏆 Game Leaderboard</h2>
+                <button id="close-game-leaderboard" class="close-btn">❌</button>
+            </div>
+            <div id="game-leaderboard-content"></div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="scripts/vector2d.js"></script>
     <script src="scripts/physics.js"></script>
@@ -216,6 +336,10 @@
     <script src="scripts/particles.js"></script>
     <script src="scripts/powerups.js"></script>
     <script src="scripts/hedera.js"></script>
+    <script src="scripts/mobile-controls.js"></script>
+    <script src="scripts/marketplace.js"></script>
+    <script src="scripts/leaderboard.js"></script>
+    <script src="scripts/earning-system.js"></script>
     <script src="scripts/cosmic-collector.js"></script>
     <script src="scripts/token-battle.js"></script>
     <script src="scripts/space-defender.js"></script>
