@@ -198,16 +198,24 @@ class AsteroidMinerGame {
     }
     
     updateShip(deltaTime) {
-        // Handle rotation
-        if (this.keys['a'] || this.keys['arrowleft']) {
+        // Get mobile input
+        const mobileInput = this.getMobileInput();
+        
+        // Handle rotation - combine keyboard and mobile input
+        const rotateLeft = (this.keys['a'] || this.keys['arrowleft']) || mobileInput.left;
+        const rotateRight = (this.keys['d'] || this.keys['arrowright']) || mobileInput.right;
+        
+        if (rotateLeft) {
             this.ship.angle -= 3 * deltaTime;
         }
-        if (this.keys['d'] || this.keys['arrowright']) {
+        if (rotateRight) {
             this.ship.angle += 3 * deltaTime;
         }
         
-        // Handle thrust
-        if (this.keys['w'] || this.keys['arrowup']) {
+        // Handle thrust - combine keyboard and mobile input
+        const thrust = (this.keys['w'] || this.keys['arrowup']) || mobileInput.up;
+        
+        if (thrust) {
             this.ship.thrust = 200;
             this.createThrustParticles();
         } else {
@@ -236,6 +244,32 @@ class AsteroidMinerGame {
         if (this.ship.y > this.canvas.height) this.ship.y = 0;
     }
     
+    getMobileInput() {
+        // Get input from mobile controls if available
+        if (window.mobileControls && window.mobileControls.isEnabled) {
+            const joystick = window.mobileControls.getJoystickVector();
+            const threshold = 0.3; // Minimum joystick movement to register
+            
+            return {
+                left: joystick.x < -threshold,
+                right: joystick.x > threshold,
+                up: joystick.y < -threshold,
+                down: joystick.y > threshold,
+                fire: window.mobileControls.isPressed('fire'),
+                special: window.mobileControls.isPressed('special')
+            };
+        }
+        
+        return {
+            left: false,
+            right: false,
+            up: false,
+            down: false,
+            fire: false,
+            special: false
+        };
+    }
+    
     updateAsteroids(deltaTime) {
         this.asteroids.forEach(asteroid => {
             asteroid.rotation += asteroid.rotationSpeed * deltaTime;
@@ -243,8 +277,13 @@ class AsteroidMinerGame {
     }
     
     updateMining(deltaTime) {
-        // Check for mining target
-        if (this.keys[' ']) {
+        // Get mobile input
+        const mobileInput = this.getMobileInput();
+        
+        // Check for mining target - combine keyboard and mobile input
+        const shouldMine = this.keys[' '] || mobileInput.fire;
+        
+        if (shouldMine) {
             const nearbyAsteroid = this.findNearbyAsteroid();
             
             if (nearbyAsteroid && this.cargoUsed < this.cargoCapacity) {
