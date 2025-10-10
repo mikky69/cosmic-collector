@@ -67,6 +67,26 @@ class SpaceDefenderGame {
                 this.fireTurret();
             }
         });
+
+        // Add touch support for mobile
+        this.canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const rect = this.canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            this.mouse.x = touch.clientX - rect.left;
+            this.mouse.y = touch.clientY - rect.top;
+        });
+
+        this.canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (this.gameState === 'playing') {
+                const rect = this.canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                this.mouse.x = touch.clientX - rect.left;
+                this.mouse.y = touch.clientY - rect.top;
+                this.fireTurret();
+            }
+        });
     }
     
     startGame() {
@@ -171,16 +191,54 @@ class SpaceDefenderGame {
     
     updateTurrets(deltaTime) {
         this.turrets.forEach(turret => {
-            // Aim at mouse
-            const dx = this.mouse.x - turret.x;
-            const dy = this.mouse.y - turret.y;
-            turret.angle = Math.atan2(dy, dx);
+            // Get mobile input
+            const mobileInput = this.getMobileInput();
+            
+            // Aim at mouse or use mobile joystick for aiming
+            if (mobileInput.hasInput) {
+                // Use joystick for aiming direction
+                const joystick = window.mobileControls.getJoystickVector();
+                if (Math.abs(joystick.x) > 0.2 || Math.abs(joystick.y) > 0.2) {
+                    turret.angle = Math.atan2(joystick.y, joystick.x);
+                }
+                
+                // Auto-fire when mobile fire button is pressed
+                if (mobileInput.fire && turret.shootCooldown <= 0) {
+                    this.fireTurret();
+                }
+            } else {
+                // Use mouse for aiming (desktop)
+                const dx = this.mouse.x - turret.x;
+                const dy = this.mouse.y - turret.y;
+                turret.angle = Math.atan2(dy, dx);
+            }
             
             // Update cooldown
             if (turret.shootCooldown > 0) {
                 turret.shootCooldown -= deltaTime;
             }
         });
+    }
+    
+    getMobileInput() {
+        // Get input from mobile controls if available
+        if (window.mobileControls && window.mobileControls.isEnabled) {
+            const joystick = window.mobileControls.getJoystickVector();
+            
+            return {
+                hasInput: true,
+                fire: window.mobileControls.isPressed('fire'),
+                special: window.mobileControls.isPressed('special'),
+                joystick: joystick
+            };
+        }
+        
+        return {
+            hasInput: false,
+            fire: false,
+            special: false,
+            joystick: { x: 0, y: 0 }
+        };
     }
     
     fireTurret() {
