@@ -224,6 +224,9 @@ class TokenBattleGame {
             this.timeLeft--;
             this.updateTimerDisplay();
             
+            // Check mobile input
+            this.handleMobileInput();
+            
             if (this.timeLeft <= 0) {
                 this.endBattle();
             }
@@ -294,14 +297,88 @@ class TokenBattleGame {
         tokenA.replaceWith(tokenA.cloneNode(true));
         tokenB.replaceWith(tokenB.cloneNode(true));
         
-        // Add new listeners
-        document.getElementById('token-a').addEventListener('click', () => {
+        // Add new listeners (both click and touch)
+        const newTokenA = document.getElementById('token-a');
+        const newTokenB = document.getElementById('token-b');
+        
+        // Token A listeners
+        newTokenA.addEventListener('click', () => {
+            this.selectToken('A');
+        });
+        newTokenA.addEventListener('touchstart', (e) => {
+            e.preventDefault();
             this.selectToken('A');
         });
         
-        document.getElementById('token-b').addEventListener('click', () => {
+        // Token B listeners
+        newTokenB.addEventListener('click', () => {
             this.selectToken('B');
         });
+        newTokenB.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.selectToken('B');
+        });
+
+        // Add mobile control support for token selection
+        this.setupMobileTokenSelection();
+    }
+
+    setupMobileTokenSelection() {
+        // Allow mobile fire button to select highlighted token
+        this.mobileSelectionActive = false;
+        this.selectedTokenIndex = 0; // 0 for A, 1 for B
+        
+        // Check for mobile controls input during game
+        if (window.mobileControls && window.mobileControls.isEnabled) {
+            this.mobileSelectionActive = true;
+            this.updateMobileTokenHighlight();
+        }
+    }
+
+    updateMobileTokenHighlight() {
+        if (!this.mobileSelectionActive || this.gameState !== 'playing') return;
+        
+        const tokenA = document.getElementById('token-a');
+        const tokenB = document.getElementById('token-b');
+        
+        // Remove previous highlights
+        tokenA.classList.remove('mobile-highlighted');
+        tokenB.classList.remove('mobile-highlighted');
+        
+        // Add highlight to selected token
+        if (this.selectedTokenIndex === 0) {
+            tokenA.classList.add('mobile-highlighted');
+        } else {
+            tokenB.classList.add('mobile-highlighted');
+        }
+    }
+
+    handleMobileInput() {
+        if (!window.mobileControls || !window.mobileControls.isEnabled || this.gameState !== 'playing') return;
+        
+        const joystick = window.mobileControls.getJoystickVector();
+        
+        // Use joystick to switch between tokens
+        if (joystick.x < -0.5 && !this.joystickPressed) {
+            this.selectedTokenIndex = 0; // Select token A
+            this.updateMobileTokenHighlight();
+            this.joystickPressed = true;
+        } else if (joystick.x > 0.5 && !this.joystickPressed) {
+            this.selectedTokenIndex = 1; // Select token B
+            this.updateMobileTokenHighlight();
+            this.joystickPressed = true;
+        } else if (Math.abs(joystick.x) < 0.3) {
+            this.joystickPressed = false;
+        }
+        
+        // Use fire button to select highlighted token
+        if (window.mobileControls.isPressed('fire') && !this.firePressed) {
+            const choice = this.selectedTokenIndex === 0 ? 'A' : 'B';
+            this.selectToken(choice);
+            this.firePressed = true;
+        } else if (!window.mobileControls.isPressed('fire')) {
+            this.firePressed = false;
+        }
     }
     
     selectToken(choice) {
