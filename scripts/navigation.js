@@ -7,7 +7,8 @@ class GameNavigation {
             'cosmic-collector': null,
             'token-battle': null,
             'space-defender': null,
-            'asteroid-miner': null
+            'asteroid-miner': null,
+            'space-snake': null
         };
         
         this.setupNavigation();
@@ -164,6 +165,11 @@ class GameNavigation {
             case 'asteroid-miner':
                 if (!this.games[gameId]) {
                     this.games[gameId] = new AsteroidMinerGame();
+                }
+                break;
+            case 'space-snake':
+                if (!this.games[gameId]) {
+                    this.games[gameId] = new SpaceSnakeGame();
                 }
                 break;
         }
