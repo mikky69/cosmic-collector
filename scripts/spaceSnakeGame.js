@@ -2,9 +2,9 @@
 // Mikky Studio - 2025
 
 class SpaceSnakeGame {
-    constructor(canvas, ctx) {
-        this.canvas = canvas;
-        this.ctx = ctx;
+    constructor() {
+        this.canvas = document.getElementById('snakeCanvas');
+        this.ctx = this.canvas.getContext('2d');
         this.isRunning = false;
         this.isPaused = false;
         this.lastTime = 0;
@@ -47,6 +47,7 @@ class SpaceSnakeGame {
         };
         
         this.setupInput();
+        this.setupControls();
         this.initializeGame();
         
         console.log('Enhanced Space Snake Game created - Canvas:', this.canvas.width, 'x', this.canvas.height);
@@ -144,6 +145,39 @@ class SpaceSnakeGame {
                 e.preventDefault();
             }
         }, { passive: false });
+    }
+    
+    setupControls() {
+        // Setup canvas size
+        const container = document.getElementById('snake-game-area');
+        const maxWidth = Math.min(container.clientWidth - 40, 800);
+        const maxHeight = Math.min(window.innerHeight - 300, 600);
+        
+        this.canvas.width = maxWidth;
+        this.canvas.height = maxHeight;
+        
+        // Update grid dimensions based on new canvas size
+        this.gridWidth = Math.floor(this.canvas.width / this.gridSize);
+        this.gridHeight = Math.floor(this.canvas.height / this.gridSize);
+        
+        // Setup button event listeners
+        document.getElementById('snake-start').addEventListener('click', () => {
+            if (!this.isRunning || this.gameState === 'gameOver') {
+                this.startGame();
+            }
+        });
+        
+        document.getElementById('snake-pause').addEventListener('click', () => {
+            if (this.isRunning && !this.isPaused) {
+                this.pauseGame();
+            } else if (this.isPaused) {
+                this.resumeGame();
+            }
+        });
+        
+        document.getElementById('snake-reset').addEventListener('click', () => {
+            this.resetGame();
+        });
     }
     
     handleKeyDown(e) {
@@ -276,6 +310,76 @@ class SpaceSnakeGame {
     togglePause() {
         this.isPaused = !this.isPaused;
         console.log('Snake game', this.isPaused ? 'paused' : 'resumed');
+    }
+    
+    startGame() {
+        if (this.isRunning) return;
+        
+        this.isRunning = true;
+        this.isPaused = false;
+        this.lastTime = 0;
+        this.gameState = 'playing';
+        
+        // Update UI
+        this.updateUI();
+        
+        console.log('Space Snake game started');
+        requestAnimationFrame((time) => this.gameLoop(time));
+    }
+    
+    pauseGame() {
+        if (!this.isRunning) return;
+        
+        this.isPaused = true;
+        console.log('Space Snake game paused');
+    }
+    
+    resumeGame() {
+        if (!this.isRunning || !this.isPaused) return;
+        
+        this.isPaused = false;
+        console.log('Space Snake game resumed');
+    }
+    
+    resetGame() {
+        // Stop current game
+        this.isRunning = false;
+        this.isPaused = false;
+        this.gameState = 'stopped';
+        
+        // Reset game state
+        this.score = 0;
+        this.level = 1;
+        this.tokens = 0;
+        this.streak = 0;
+        this.bonusMultiplier = 1;
+        this.lives = 3;
+        
+        // Reset snake
+        this.snake = [
+            { x: Math.floor(this.gridWidth / 2), y: Math.floor(this.gridHeight / 2) }
+        ];
+        this.direction = { x: 1, y: 0 };
+        this.nextDirection = { x: 1, y: 0 };
+        
+        // Clear items
+        this.food = [];
+        this.powerUps = [];
+        this.specialItems = [];
+        
+        // Reset achievements
+        this.achievements = {
+            firstFood: false,
+            reach10Length: false,
+            reach50Score: false,
+            reach100Score: false,
+            perfectLevel: false
+        };
+        
+        // Reinitialize
+        this.initializeGame();
+        
+        console.log('Space Snake game reset');
     }
 
     gameLoop(currentTime) {
@@ -769,20 +873,21 @@ class SpaceSnakeGame {
     }
 
     updateUI() {
-        document.getElementById('score').textContent = this.score;
-        document.getElementById('lives').textContent = this.lives;
-        document.getElementById('level').textContent = this.level;
-        document.getElementById('gems').textContent = this.snake.length;
+        // Update UI elements with correct IDs that match HTML
+        const scoreElement = document.getElementById('snake-score');
+        if (scoreElement) scoreElement.textContent = this.score;
         
-        // Update enhanced UI elements if they exist
-        const tokensElement = document.getElementById('tokens');
-        if (tokensElement) tokensElement.textContent = this.tokens;
+        const lengthElement = document.getElementById('snake-length');
+        if (lengthElement) lengthElement.textContent = this.snake.length;
         
-        const streakElement = document.getElementById('streak');
+        const levelElement = document.getElementById('snake-level');
+        if (levelElement) levelElement.textContent = this.level;
+        
+        const streakElement = document.getElementById('snake-streak');
         if (streakElement) streakElement.textContent = this.streak;
         
-        const multiplierElement = document.getElementById('multiplier');
-        if (multiplierElement) multiplierElement.textContent = `${this.bonusMultiplier}x`;
+        const tokensElement = document.getElementById('snake-tokens-earned');
+        if (tokensElement) tokensElement.textContent = this.tokens;
         
         // Show streak and multiplier info if significant
         if (this.streak >= 5) {
@@ -794,10 +899,15 @@ class SpaceSnakeGame {
         this.isRunning = false;
         this.stop();
         
-        // Update final stats
-        document.getElementById('finalScore').textContent = this.score;
-        document.getElementById('finalLevel').textContent = this.level;
-        document.getElementById('finalGems').textContent = this.snake.length;
+        // Update final stats in game over modal if elements exist
+        const finalScoreElement = document.getElementById('finalScore');
+        if (finalScoreElement) finalScoreElement.textContent = this.score;
+        
+        const finalLevelElement = document.getElementById('finalLevel');
+        if (finalLevelElement) finalLevelElement.textContent = this.level;
+        
+        const finalLengthElement = document.getElementById('finalGems');
+        if (finalLengthElement) finalLengthElement.textContent = this.snake.length;
         
         // Update additional stats if elements exist
         const finalTokensElement = document.getElementById('finalTokens');
