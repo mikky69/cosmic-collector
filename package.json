@@ -1,23 +1,17 @@
 {
-  "name": "cosmic-collector",
+  "name": "cosmic-collection",
   "version": "1.0.0",
-  "description": "Cosmic Collector - An arcade space game by Mikky Studio with Hedera integration",
-  "main": "index.html",
+  "description": "Play-to-Earn Gaming Platform on Hedera by Engr. Mikailu Nadro",
+  "author": "Engr. Mikailu Nadro",
+  "license": "MIT",
   "scripts": {
-    "start": "python3 -m http.server 8000",
-    "build": "exit 0",
-    "test": "node test.js"
-  },
-  "engines": {
-    "node": ">=14.0.0"
+    "start": "npx http-server -p 8000"
   },
   "dependencies": {
-    "@hashgraph/sdk": "^2.40.0"
+    "@hashgraph/sdk": "^2.40.0",
+    "dotenv": "^16.3.1"
   },
   "devDependencies": {
-    "jest": "^29.7.0"
-  },
-  "keywords": ["game", "arcade", "hedera", "blockchain", "nft"],
-  "author": "Mikky Studio",
-  "license": "MIT"
+    "http-server": "^14.1.1"
+  }
 }
