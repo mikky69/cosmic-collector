@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asteroid Defender</title>
+    <link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <button onclick="location.href='../index.html'">← Back</button>
+            <h1>🛡️ Asteroid Defender</h1>
+            <div class="game-stats">
+                <span id="score">Score: 0</span>
+                <span id="cosm">COSM: 0.00</span>
+            </div>
+        </div>
+        
+        <canvas id="asteroidCanvas" width="800" height="600"></canvas>
+        
+        <div class="game-controls">
+            <button onclick="asteroidGame.start()">Start Game</button>
+        </div>
+        
+        <p style="text-align: center; margin-top: 1rem; color: #9ca3af;">
+            🕹️ Arrow Keys/AD to Move | 🎯 Space/Click to Shoot | 📱 Touch Controls on Mobile
+        </p>
+    </div>
+    
+    <script src="../scripts/hedera-service.js"></script>
+    <script src="asteroid.js"></script>
+</body>
+</html>
