@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { getPlayerNFTs } from '../utils/blockchain';
+import { sfx } from '../utils/sfx';
 
 export default function SnakeGame({ walletAddress }) {
   const canvasRef = useRef(null);
@@ -78,6 +79,7 @@ export default function SnakeGame({ walletAddress }) {
     // self hit
     if (g.snake.some(s => s.x === head.x && s.y === head.y)) {
       stop();
+      sfx.gameover();
       render(ctx);
       return;
     }
@@ -88,6 +90,7 @@ export default function SnakeGame({ walletAddress }) {
       setScore(prev => prev + inc);
       g.food = randomFood(g);
       setSpeedMs(prev => Math.max(60, prev - 2));
+      sfx.collect();
     } else {
       g.snake.pop();
     }
@@ -126,9 +129,9 @@ export default function SnakeGame({ walletAddress }) {
         <h2>🐍 Space Snake</h2>
         <div className="game-controls">
           {!running ? (
-            <button className="game-button start" onClick={start}>Start</button>
+            <button className="game-button start" onClick={() => { sfx.click(); start(); }}>Start</button>
           ) : (
-            <button className="game-button stop" onClick={stop}>Stop</button>
+            <button className="game-button stop" onClick={() => { sfx.click(); stop(); }}>Stop</button>
           )}
           <div style={{ marginLeft: 12 }}>Score: {score}</div>
         </div>

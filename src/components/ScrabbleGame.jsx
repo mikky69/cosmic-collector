@@ -41,7 +41,7 @@ export default function ScrabbleGame() {
 }
 
 function generateRack() {
-  const alphabet = 'abcdefghiijklmnopqrstuvwxyz';
+  const alphabet = 'abcdefghijklmnopqrstuvwxyz';
   let s = '';
   for (let i = 0; i < 10; i++) s += alphabet[Math.floor(Math.random()*alphabet.length)];
   return s;

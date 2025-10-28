@@ -69,12 +69,10 @@ const GameArea = ({ walletAddress }) => {
         items: prev.items + 1
       }));
 
-      // Chance to mint NFT for rare items
-      if (collectible.rarity === 'epic' || collectible.rarity === 'legendary') {
+      // Tightened minting: only after reaching score thresholds to prevent free spam
+      if ((gameStateRef.current.score % 1000) === 0 && collectible.rarity === 'legendary') {
         const mintResult = await mintNFT(collectible.type, collectible.rarity);
-        if (mintResult.success) {
-          showNotification(`🎉 Minted ${collectible.rarity} ${collectible.type} NFT!`);
-        }
+        if (mintResult.success) showNotification(`🎉 Minted ${collectible.rarity} ${collectible.type} NFT!`);
       }
 
     } catch (error) {

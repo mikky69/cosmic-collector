@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { getPlayerNFTs } from '../utils/blockchain';
+import { sfx } from '../utils/sfx';
 
 export default function AsteroidMiner({ walletAddress }) {
   const canvasRef = useRef(null);
@@ -59,7 +60,7 @@ export default function AsteroidMiner({ walletAddress }) {
     // mining on Space
     if (s.keys[' '] && !s.mining) {
       const target = s.asteroids.find(a => dist(a.x, a.y, s.ship.x, s.ship.y) < 40);
-      if (target) s.mining = { target, p: 0 };
+      if (target) { s.mining = { target, p: 0 }; sfx.mine(); }
     }
     if (!s.keys[' ']) s.mining = null;
     if (s.mining) {
@@ -94,9 +95,9 @@ export default function AsteroidMiner({ walletAddress }) {
         <h2>⛏️ Asteroid Miner</h2>
         <div className="game-controls">
           {!running ? (
-            <button className="game-button start" onClick={start}>Start</button>
+            <button className="game-button start" onClick={() => { sfx.click(); start(); }}>Start</button>
           ) : (
-            <button className="game-button stop" onClick={stop}>Stop</button>
+            <button className="game-button stop" onClick={() => { sfx.click(); stop(); }}>Stop</button>
           )}
           <div style={{ marginLeft: 12 }}>Score: {score}</div>
         </div>
