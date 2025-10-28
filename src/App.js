@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './styles/Game.css';
 import GameArea from './components/GameArea';
+import IframeGame from './components/IframeGame';
 import PlayerStats from './components/PlayerStats';
 import Inventory from './components/Inventory';
 import Leaderboard from './components/Leaderboard';
@@ -9,7 +10,7 @@ import TokenBattle from './games/TokenBattle';
 import { initializeBlockchain, getWalletAddress, isUsingMockContracts, getCurrentContractAddresses } from './utils/blockchain';
 
 function App() {
-  const [currentView, setCurrentView] = useState('game');
+  const [currentView, setCurrentView] = useState('collector');
   const [walletAddress, setWalletAddress] = useState(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [usingMockContracts, setUsingMockContracts] = useState(false);
@@ -37,7 +38,7 @@ function App() {
 
   const renderCurrentView = () => {
     switch (currentView) {
-      case 'game':
+      case 'collector':
         return <GameArea walletAddress={walletAddress} />;
       case 'inventory':
         return <Inventory walletAddress={walletAddress} />;
@@ -47,6 +48,21 @@ function App() {
         return <Marketplace walletAddress={walletAddress} />;
       case 'tokenbattle':
         return <TokenBattle />;
+      case 'asteroid':
+        return (
+          <IframeGame title="Asteroid Miner" src="/games/asteroid.html" />
+        );
+      case 'snake':
+        return (
+          <IframeGame title="Space Snake" src="/games/snake.html" />
+        );
+      case 'scrabble':
+        return (
+          <div style={{ padding: '16px' }}>
+            <h2 style={{ marginTop: 0 }}>🧩 Web3 Word Scrabble</h2>
+            <p>Coming soon. This mode will use your connected wallet for score submissions and NFT rewards.</p>
+          </div>
+        );
       default:
         return <GameArea walletAddress={walletAddress} />;
     }
@@ -111,16 +127,34 @@ function App() {
 
       <nav className="app-nav">
         <button
-          className={currentView === 'game' ? 'nav-button active' : 'nav-button'}
-          onClick={() => setCurrentView('game')}
+          className={currentView === 'collector' ? 'nav-button active' : 'nav-button'}
+          onClick={() => setCurrentView('collector')}
         >
-          🎮 Game
+          🚀 Cosmic Collector
         </button>
         <button
           className={currentView === 'tokenbattle' ? 'nav-button active' : 'nav-button'}
           onClick={() => setCurrentView('tokenbattle')}
         >
           ⚔️ Token Battle
+        </button>
+        <button
+          className={currentView === 'asteroid' ? 'nav-button active' : 'nav-button'}
+          onClick={() => setCurrentView('asteroid')}
+        >
+          ⛏️ Asteroid Miner
+        </button>
+        <button
+          className={currentView === 'snake' ? 'nav-button active' : 'nav-button'}
+          onClick={() => setCurrentView('snake')}
+        >
+          🐍 Space Snake
+        </button>
+        <button
+          className={currentView === 'scrabble' ? 'nav-button active' : 'nav-button'}
+          onClick={() => setCurrentView('scrabble')}
+        >
+          🔤 Word Scrabble
         </button>
         <button
           className={currentView === 'inventory' ? 'nav-button active' : 'nav-button'}
