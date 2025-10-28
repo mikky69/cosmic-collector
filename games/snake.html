@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../styles/main.css">
 </head>
 <body>
-    <div class="game-container">
+    <div class="game-container" id="page-container" style="display:none;">
         <div class="game-header">
             <button onclick="location.href='../index.html'">← Back</button>
             <h1>🐍 Space Snake</h1>
@@ -28,6 +28,20 @@
         </p>
     </div>
     
+    <script>
+      (function(){
+        const params = new URLSearchParams(window.location.search);
+        const embed = params.get('embed') === '1';
+        const container = document.getElementById('page-container');
+        if (embed) {
+          container.style.display = 'block';
+          const backBtn = container.querySelector('button');
+          if (backBtn) backBtn.style.display = 'none';
+        } else {
+          container.style.display = 'block';
+        }
+      })();
+    </script>
     <script src="../scripts/hedera-service.js"></script>
     <script src="snake.js"></script>
 </body>

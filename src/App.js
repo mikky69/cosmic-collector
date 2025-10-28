@@ -50,11 +50,11 @@ function App() {
         return <TokenBattle />;
       case 'asteroid':
         return (
-          <IframeGame title="Asteroid Miner" src="/games/asteroid.html" />
+          <IframeGame title="Asteroid Miner" src="/games/asteroid.html?embed=1" />
         );
       case 'snake':
         return (
-          <IframeGame title="Space Snake" src="/games/snake.html" />
+          <IframeGame title="Space Snake" src="/games/snake.html?embed=1" />
         );
       case 'scrabble':
         return (
