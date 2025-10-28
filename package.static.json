@@ -1,0 +1,17 @@
+{
+  "name": "cosmic-collection",
+  "version": "1.0.0",
+  "description": "Play-to-Earn Gaming Platform on Hedera by Engr. Mikailu Nadro",
+  "author": "Engr. Mikailu Nadro",
+  "license": "MIT",
+  "scripts": {
+    "start": "npx http-server -p 8000"
+  },
+  "dependencies": {
+    "@hashgraph/sdk": "^2.40.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

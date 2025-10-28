@@ -1,17 +1,42 @@
 {
-  "name": "cosmic-collection",
+  "name": "cosmic-collector-game",
   "version": "1.0.0",
-  "description": "Play-to-Earn Gaming Platform on Hedera by Engr. Mikailu Nadro",
-  "author": "Engr. Mikailu Nadro",
-  "license": "MIT",
-  "scripts": {
-    "start": "npx http-server -p 8000"
-  },
+  "private": true,
   "dependencies": {
-    "@hashgraph/sdk": "^2.40.0",
-    "dotenv": "^16.3.1"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "ethers": "^6.7.1",
+    "web-vitals": "^3.3.2"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "dev": "npm start"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   },
   "devDependencies": {
-    "http-server": "^14.1.1"
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^14.4.3"
   }
 }

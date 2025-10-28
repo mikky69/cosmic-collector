@@ -440,8 +440,8 @@ const TokenBattle = () => {
     }, 2000);
   };
 
-  // Use power-up
-  const usePowerUp = (type) => {
+  // Activate a power-up (renamed to avoid React hooks rule false-positive)
+  const activatePowerUp = (type) => {
     if (powerUps[type] <= 0) return;
     
     setPowerUps(prev => ({ ...prev, [type]: prev[type] - 1 }));
@@ -456,6 +456,8 @@ const TokenBattle = () => {
         break;
       case 'skipQuestion':
         generateNewQuestion();
+        break;
+      default:
         break;
     }
   };
@@ -638,7 +640,7 @@ const TokenBattle = () => {
           <div className="power-ups">
             <button 
               className={`power-up ${powerUps.timeFreeze <= 0 ? 'disabled' : ''}`}
-              onClick={() => usePowerUp('timeFreeze')}
+              onClick={() => activatePowerUp('timeFreeze')}
               disabled={powerUps.timeFreeze <= 0}
               title="Add 15 seconds"
             >
@@ -646,7 +648,7 @@ const TokenBattle = () => {
             </button>
             <button 
               className={`power-up ${powerUps.doublePoints <= 0 ? 'disabled' : ''}`}
-              onClick={() => usePowerUp('doublePoints')}
+              onClick={() => activatePowerUp('doublePoints')}
               disabled={powerUps.doublePoints <= 0}
               title="Double points for 5 seconds"
             >
@@ -654,7 +656,7 @@ const TokenBattle = () => {
             </button>
             <button 
               className={`power-up ${powerUps.skipQuestion <= 0 ? 'disabled' : ''}`}
-              onClick={() => usePowerUp('skipQuestion')}
+              onClick={() => activatePowerUp('skipQuestion')}
               disabled={powerUps.skipQuestion <= 0}
               title="Skip this question"
             >
