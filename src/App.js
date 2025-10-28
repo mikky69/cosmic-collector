@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import './styles/Game.css';
 import GameArea from './components/GameArea';
-import IframeGame from './components/IframeGame';
+import AsteroidMiner from './components/AsteroidMiner';
+import SnakeGame from './components/SnakeGame';
 import PlayerStats from './components/PlayerStats';
 import Inventory from './components/Inventory';
 import Leaderboard from './components/Leaderboard';
 import Marketplace from './components/Marketplace';
 import TokenBattle from './games/TokenBattle';
+import ScrabbleGame from './components/ScrabbleGame';
 import { initializeBlockchain, getWalletAddress, isUsingMockContracts, getCurrentContractAddresses } from './utils/blockchain';
 
 function App() {
@@ -49,20 +51,11 @@ function App() {
       case 'tokenbattle':
         return <TokenBattle />;
       case 'asteroid':
-        return (
-          <IframeGame title="Asteroid Miner" src="/games/asteroid.html?embed=1" />
-        );
+        return <AsteroidMiner walletAddress={walletAddress} />;
       case 'snake':
-        return (
-          <IframeGame title="Space Snake" src="/games/snake.html?embed=1" />
-        );
+        return <SnakeGame walletAddress={walletAddress} />;
       case 'scrabble':
-        return (
-          <div style={{ padding: '16px' }}>
-            <h2 style={{ marginTop: 0 }}>🧩 Web3 Word Scrabble</h2>
-            <p>Coming soon. This mode will use your connected wallet for score submissions and NFT rewards.</p>
-          </div>
-        );
+        return <ScrabbleGame />;
       default:
         return <GameArea walletAddress={walletAddress} />;
     }
