@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { getMarketplaceListings, buyNFT, getPlayerNFTs } from '../utils/blockchain';
+import { getMarketplaceListings, buyNFT, getPlayerNFTs, mintNFT, listNFTForSale } from '../utils/blockchain';
 
 const Marketplace = ({ walletAddress }) => {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [buying, setBuying] = useState(null);
+  const [minting, setMinting] = useState(false);
+  const [listing, setListing] = useState(false);
+  const [mintForm, setMintForm] = useState({ type: 'star', rarity: 'common', name: 'Cosmic Ship', uri: 'ipfs://example' });
+  const [listForm, setListForm] = useState({ tokenId: '', price: '' });
 
   useEffect(() => {
     loadListings();
@@ -41,6 +45,27 @@ const Marketplace = ({ walletAddress }) => {
       alert('Error purchasing NFT');
     }
     setBuying(null);
+  };
+
+  const handleMint = async () => {
+    if (!walletAddress) { alert('Connect wallet'); return; }
+    setMinting(true);
+    try {
+      const res = await mintNFT(mintForm.type, mintForm.rarity);
+      if (res?.success) alert(`Minted NFT #${res.tokenId}`);
+      else alert('Mint failed');
+    } finally { setMinting(false); }
+  };
+
+  const handleList = async () => {
+    if (!walletAddress) { alert('Connect wallet'); return; }
+    if (!listForm.tokenId || !listForm.price) { alert('TokenId and price required'); return; }
+    setListing(true);
+    try {
+      const ok = await listNFTForSale(Number(listForm.tokenId), Number(listForm.price));
+      if (ok) { alert('Listed'); loadListings(); }
+      else alert('List failed');
+    } finally { setListing(false); }
   };
 
   const getRarityColor = (rarity) => {
@@ -164,6 +189,32 @@ const Marketplace = ({ walletAddress }) => {
                 </div>
               </div>
             ))}
+          </div>
+
+          <div className="marketplace-actions" style={{ marginTop: 24 }}>
+            <h3>Mint a Game NFT</h3>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <select value={mintForm.type} onChange={e => setMintForm({ ...mintForm, type: e.target.value })}>
+                <option value="star">Star</option>
+                <option value="crystal">Crystal</option>
+                <option value="plasma">Plasma</option>
+                <option value="quantum">Quantum</option>
+              </select>
+              <select value={mintForm.rarity} onChange={e => setMintForm({ ...mintForm, rarity: e.target.value })}>
+                <option value="common">Common</option>
+                <option value="rare">Rare</option>
+                <option value="epic">Epic</option>
+                <option value="legendary">Legendary</option>
+              </select>
+              <button onClick={handleMint} disabled={minting || !walletAddress}>{minting ? 'Minting...' : 'Mint'}</button>
+            </div>
+
+            <h3 style={{ marginTop: 16 }}>List Your NFT</h3>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <input placeholder="Token ID" value={listForm.tokenId} onChange={e => setListForm({ ...listForm, tokenId: e.target.value })} />
+              <input placeholder="Price (HBAR)" value={listForm.price} onChange={e => setListForm({ ...listForm, price: e.target.value })} />
+              <button onClick={handleList} disabled={listing || !walletAddress}>{listing ? 'Listing...' : 'List'}</button>
+            </div>
           </div>
         </div>
       )}

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { getLeaderboard } from '../utils/blockchain';
+import { getLeaderboard, updatePlayerScore } from '../utils/blockchain';
 
 const Leaderboard = () => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [name, setName] = useState('Player');
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     loadLeaderboard();
@@ -18,6 +20,15 @@ const Leaderboard = () => {
       console.error('Error loading leaderboard:', error);
     }
     setLoading(false);
+  };
+
+  const submitScore = async () => {
+    const randScore = Math.floor(Math.random() * 5000) + 500; // placeholder; wire per-game scores later
+    setSubmitting(true);
+    try {
+      const ok = await updatePlayerScore(randScore);
+      if (ok) loadLeaderboard();
+    } finally { setSubmitting(false); }
   };
 
   const formatAddress = (address) => {
@@ -63,6 +74,10 @@ const Leaderboard = () => {
         </div>
       ) : (
         <div className="leaderboard-content">
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="Name" />
+            <button onClick={submitScore} disabled={submitting}>{submitting ? 'Submitting...' : 'Submit Random Score'}</button>
+          </div>
           <div className="leaderboard-stats">
             <span>Total Players: {leaderboard.length}</span>
             <span>Top Score: {leaderboard[0]?.score?.toLocaleString() || 0}</span>
