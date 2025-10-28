@@ -50,10 +50,10 @@ export default function AsteroidMiner({ walletAddress }) {
     const s = stateRef.current;
     // physics
     const thrust = s.keys['w'] || s.keys['arrowup'];
-    if (s.keys['a'] || s.keys['arrowleft']) s.ship.a -= 0.05;
-    if (s.keys['d'] || s.keys['arrowright']) s.ship.a += 0.05;
-    if (thrust) { s.ship.vx += Math.cos(s.ship.a) * 0.2; s.ship.vy += Math.sin(s.ship.a) * 0.2; }
-    s.ship.vx *= 0.99; s.ship.vy *= 0.99;
+    if (s.keys['a'] || s.keys['arrowleft']) s.ship.a -= 0.09;
+    if (s.keys['d'] || s.keys['arrowright']) s.ship.a += 0.09;
+    if (thrust) { s.ship.vx += Math.cos(s.ship.a) * 0.35; s.ship.vy += Math.sin(s.ship.a) * 0.35; sfx.mine(); }
+    s.ship.vx *= 0.995; s.ship.vy *= 0.995;
     s.ship.x = (s.ship.x + s.ship.vx + 600) % 600;
     s.ship.y = (s.ship.y + s.ship.vy + 480) % 480;
 
@@ -97,7 +97,10 @@ export default function AsteroidMiner({ walletAddress }) {
           {!running ? (
             <button className="game-button start" onClick={() => { sfx.click(); start(); }}>Start</button>
           ) : (
-            <button className="game-button stop" onClick={() => { sfx.click(); stop(); }}>Stop</button>
+            <>
+              <button className="game-button stop" onClick={() => { sfx.click(); stop(); }}>Stop</button>
+              <button className="game-button" onClick={() => window.history.back()} style={{ marginLeft: 8 }}>Back</button>
+            </>
           )}
           <div style={{ marginLeft: 12 }}>Score: {score}</div>
         </div>

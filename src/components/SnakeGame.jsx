@@ -65,6 +65,11 @@ export default function SnakeGame({ walletAddress }) {
     if (loopRef.current) clearTimeout(loopRef.current);
   };
 
+  const pause = () => {
+    if (!running) return; setRunning(false); if (loopRef.current) clearTimeout(loopRef.current);
+  };
+  const resume = () => { if (running) return; setRunning(true); loopRef.current = setTimeout(tick, speedMs); };
+
   function tick() {
     const ctx = canvasRef.current?.getContext('2d');
     if (!ctx) return;
@@ -129,9 +134,16 @@ export default function SnakeGame({ walletAddress }) {
         <h2>🐍 Space Snake</h2>
         <div className="game-controls">
           {!running ? (
-            <button className="game-button start" onClick={() => { sfx.click(); start(); }}>Start</button>
+            <>
+              <button className="game-button start" onClick={() => { sfx.click(); start(); }}>Start</button>
+              <button className="game-button" onClick={() => { sfx.click(); resume(); }} style={{ marginLeft: 8 }}>Resume</button>
+            </>
           ) : (
-            <button className="game-button stop" onClick={() => { sfx.click(); stop(); }}>Stop</button>
+            <>
+              <button className="game-button stop" onClick={() => { sfx.click(); stop(); }}>Stop</button>
+              <button className="game-button" onClick={() => { sfx.click(); pause(); }} style={{ marginLeft: 8 }}>Pause</button>
+              <button className="game-button" onClick={() => window.history.back()} style={{ marginLeft: 8 }}>Back</button>
+            </>
           )}
           <div style={{ marginLeft: 12 }}>Score: {score}</div>
         </div>
