@@ -1,0 +1,53 @@
+# Hedera Testnet Credentials
+OPERATOR_ID=0.0.xxxxx
+OPERATOR_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+OWNER2_ID=0.0.xxxxx
+OWNER2_ADDRESS=0xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Hedera Mainnet (for future use)
+MAINNET_OPERATOR_ID=
+MAINNET_OPERATOR_KEY=
+
+# Treasury Account
+TREASURY_ACCOUNT_ID=0.0.xxxxx
+TREASURY_ACCOUNT_ADDRESS=0xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TREASURY_PRIVATE_KEY=
+
+# Token Configuration
+COSM_TOKEN_ID=0.0.xxxxx
+COSM_TOKEN_SUPPLY=1000000000
+
+# NFT Configuration
+SPACESHIP_NFT_TOKEN_ID=
+
+# HCS Topic IDs (one per game)
+GAME_1_TOPIC_ID=
+GAME_2_TOPIC_ID=
+GAME_3_TOPIC_ID=
+GAME_4_TOPIC_ID=
+
+#  Smart Contract IDs (after deployment)
+ACCESS_CONTROL_CONTRACT_ID=0.xxxxx
+GAME_REGISTRY_CONTRACT_ID=0.xxxxx
+COSM_TOKEN_CONTRACT_ID=0.xxxxx
+SPACESHIP_NFT_CONTRACT_ID=0.xxxxx
+TREASURY_CONTRACT_ID=0.xxxxx
+REWARD_DISTRIBUTOR_CONTRACT_ID=0.xxxxx
+MARKETPLACE_CONTRACT_ID=0.xxxxx
+AUCTION_HOUSE_CONTRACT_ID=0.xxxxx
+LEADERBOARD_MANAGER_CONTRACT_ID=0.xxxxx
+
+# Smart Contract Addresses (after deployment)
+ACCESS_CONTROL_ADDRESS=0x
+GAME_REGISTRY_ADDRESS=0x
+COSM_TOKEN_ADDRESS=0x
+SPACESHIP_NFT_ADDRESS=0x
+TREASURY_ADDRESS=0x
+REWARD_DISTRIBUTOR_ADDRESS=0x
+MARKETPLACE_ADDRESS=0x
+AUCTION_HOUSE_ADDRESS=0x
+LEADERBOARD_MANAGER_ADDRESS=0x
+
+# Network
+NETWORK=testnet
+HEDERA_TESTNET_URL="https://296.rpc.thirdweb.com"
